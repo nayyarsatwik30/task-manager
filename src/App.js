@@ -6,16 +6,15 @@ import MainLayout from './layout/MainLayout';
 import { ThemeProvider } from './context/ThemeContext';
 import MyTasks from './pages/MyTasks';
 import { Box, Typography } from '@mui/material';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 
-// Placeholder pages
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
 const Calendar = () => (
   <Box sx={{ p: 4, minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
     <Typography variant="h4" color="primary">Calendar Page</Typography>
   </Box>
 );
-const Settings = () => <div>Settings Page</div>;
-const Profile = () => <div>Profile Page</div>;
 
 function App() {
   // For demo: fake auth state. Replace with real auth logic later.
@@ -38,7 +37,7 @@ function App() {
                     <Route path="/" element={<React.Suspense fallback={null}><Dashboard /></React.Suspense>} />
                     <Route path="/tasks" element={<MyTasks />} />
                     <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/settings" element={<Settings handleLogout={handleLogout} />} />
                     <Route path="/profile" element={<Profile />} />
                   </Routes>
                 </MainLayout>

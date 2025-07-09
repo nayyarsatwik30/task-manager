@@ -3,6 +3,7 @@ import { Box, Grid, Paper, Typography, TextField, Button, Checkbox, FormControlL
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useThemeMode } from '../context/ThemeContext';
+import { useTheme } from '@mui/material';
 
 const Signup = ({ setIsAuthenticated }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,6 +18,7 @@ const Signup = ({ setIsAuthenticated }) => {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const { mode } = useThemeMode();
+  const theme = useTheme();
 
   const validate = () => {
     const newErrors = {};
@@ -77,9 +79,12 @@ const Signup = ({ setIsAuthenticated }) => {
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
-          background: 'rgba(255,255,255,0.95)',
+          background: mode === 'light' 
+            ? 'rgba(255,255,255,0.95)'
+            : theme.palette.background.paper,
           backdropFilter: 'blur(10px)',
-          borderRadius: 3
+          borderRadius: 3,
+          color: theme.palette.text.primary
         }}>
           <Box sx={{ width: '100%', p: 4 }}>
             <Typography variant="h4" fontWeight={700} gutterBottom align="center" color="primary" mb={1}>
@@ -99,9 +104,19 @@ const Signup = ({ setIsAuthenticated }) => {
                 autoComplete="name"
                 value={formData.fullName}
                 onChange={handleChange('fullName')}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, 
+                  '& .MuiInputBase-root': {
+                    background: mode === 'dark' ? theme.palette.background.default : 'white',
+                    color: theme.palette.text.primary
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                  }
+                }}
                 error={!!errors.fullName}
                 helperText={errors.fullName}
+                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
+                InputProps={{ style: { color: theme.palette.text.primary } }}
               />
               <TextField
                 margin="normal"
@@ -113,9 +128,19 @@ const Signup = ({ setIsAuthenticated }) => {
                 autoComplete="email"
                 value={formData.email}
                 onChange={handleChange('email')}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, 
+                  '& .MuiInputBase-root': {
+                    background: mode === 'dark' ? theme.palette.background.default : 'white',
+                    color: theme.palette.text.primary
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                  }
+                }}
                 error={!!errors.email}
                 helperText={errors.email}
+                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
+                InputProps={{ style: { color: theme.palette.text.primary } }}
               />
               
               <TextField
@@ -129,9 +154,18 @@ const Signup = ({ setIsAuthenticated }) => {
                 autoComplete="new-password"
                 value={formData.password}
                 onChange={handleChange('password')}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, 
+                  '& .MuiInputBase-root': {
+                    background: mode === 'dark' ? theme.palette.background.default : 'white',
+                    color: theme.palette.text.primary
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                  }
+                }}
                 error={!!errors.password}
                 helperText={errors.password}
+                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -139,7 +173,8 @@ const Signup = ({ setIsAuthenticated }) => {
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
-                  )
+                  ),
+                  style: { color: theme.palette.text.primary },
                 }}
               />
               
@@ -154,9 +189,18 @@ const Signup = ({ setIsAuthenticated }) => {
                 autoComplete="new-password"
                 value={formData.confirmPassword}
                 onChange={handleChange('confirmPassword')}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, 
+                  '& .MuiInputBase-root': {
+                    background: mode === 'dark' ? theme.palette.background.default : 'white',
+                    color: theme.palette.text.primary
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                  }
+                }}
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword}
+                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -164,7 +208,8 @@ const Signup = ({ setIsAuthenticated }) => {
                         {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
-                  )
+                  ),
+                  style: { color: theme.palette.text.primary },
                 }}
               />
               

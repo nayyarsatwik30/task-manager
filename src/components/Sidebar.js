@@ -1,6 +1,6 @@
 // src/components/Sidebar.js - Modern, collapsible sidebar like Toolpad
 import React from 'react';
-import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Tooltip, IconButton, Box } from '@mui/material';
+import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Tooltip, IconButton, Box, useTheme } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -21,6 +21,8 @@ const navItems = [
 ];
 
 const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, setCollapsed, variant = 'persistent' }) => {
+  const theme = useTheme();
+  const isLight = theme.palette.mode === 'light';
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -33,6 +35,12 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       <Box>
+        {/* Collapse/Expand Button at the top */}
+        <Box sx={{ display: 'flex', justifyContent: collapsed ? 'center' : 'flex-end', alignItems: 'center', p: 1 }}>
+          <IconButton onClick={() => setCollapsed && setCollapsed(!collapsed)} size="small">
+            {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+          </IconButton>
+        </Box>
         <List sx={{ mt: 2 }}>
           {navItems.map((item) => {
             const active = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -71,21 +79,37 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
                       px: collapsed ? 0 : 3,
                       borderRadius: 2,
                       my: 0.5,
-                      color: active ? 'primary.main' : 'rgba(255,255,255,0.9)',
-                      background: active ? '#fff' : 'transparent',
+                      color: active
+                        ? theme.palette.primary.main
+                        : theme => theme.palette.mode === 'light' ? 'black' : theme.palette.text.primary,
+                      background: 'transparent',
+                      border: 'none',
+                      boxShadow: 'none',
                       fontWeight: active ? 700 : 500,
-                      boxShadow: active ? '0 2px 8px 0 rgba(25, 118, 210, 0.08)' : 'none',
                       '&:hover': {
-                        background: active ? '#fff' : 'rgba(255,255,255,0.1)',
-                        color: 'primary.main',
+                        background: theme => theme.palette.mode === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
+                        color: theme.palette.primary.main,
                       },
                       transition: 'all 0.2s',
+                      position: 'relative',
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 0, mr: collapsed ? 0 : 2, justifyContent: 'center', color: active ? 'primary.main' : 'inherit' }}>
+                    {active && (
+                      <Box sx={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 8,
+                        bottom: 8,
+                        width: 4,
+                        borderRadius: 4,
+                        bgcolor: theme.palette.primary.main,
+                        zIndex: 1,
+                      }} />
+                    )}
+                    <ListItemIcon sx={{ minWidth: 0, mr: collapsed ? 0 : 2, justifyContent: 'center', color: active ? theme.palette.primary.main : (theme.palette.mode === 'light' ? 'black' : 'white') }}>
                       {item.icon}
                     </ListItemIcon>
-                    {!collapsed && <ListItemText primary={item.label} sx={{ fontWeight: active ? 700 : 500, color: active ? 'primary.main' : 'inherit' }} />}
+                    {!collapsed && <ListItemText primary={item.label} sx={{ fontWeight: active ? 700 : 500, color: active ? theme.palette.primary.main : theme => theme.palette.mode === 'light' ? 'black' : theme.palette.text.primary }} />}
                   </ListItemButton>
                 </Box>
               </Tooltip>
@@ -105,10 +129,10 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
       PaperProps={{
         sx: {
           width: drawerIsOpen ? (collapsed ? miniWidth : drawerWidth) : 0,
-          bgcolor: 'primary.main',
-          background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+          bgcolor: theme => theme.palette.mode === 'light' ? '#fff' : theme.palette.background.default,
+          background: theme => theme.palette.mode === 'light' ? '#fff' : theme.palette.background.default,
           borderRight: 0,
-          color: 'white',
+          color: theme => theme.palette.mode === 'light' ? 'black' : theme.palette.text.primary,
           transition: 'width 0.3s',
         },
       }}

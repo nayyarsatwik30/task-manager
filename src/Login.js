@@ -3,19 +3,27 @@ import { Box, Grid, Paper, Typography, TextField, Button, Checkbox, FormControlL
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useThemeMode } from './context/ThemeContext';
+import { useTheme } from '@mui/material';
 
 const Login = ({ setIsAuthenticated }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { mode } = useThemeMode();
+  const theme = useTheme();
 
   const handleShowPassword = () => setShowPassword((show) => !show);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!email || !password) {
+      setError('Email and password are required.');
+      return;
+    }
+    setError('');
     // TODO: Add real authentication logic here
     setIsAuthenticated(true);
     navigate('/');
@@ -47,9 +55,12 @@ const Login = ({ setIsAuthenticated }) => {
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
-          background: 'rgba(255,255,255,0.95)',
+          background: mode === 'light' 
+            ? 'rgba(255,255,255,0.95)'
+            : theme.palette.background.paper,
           backdropFilter: 'blur(10px)',
-          borderRadius: 3
+          borderRadius: 3,
+          color: theme.palette.text.primary
         }}>
           <Box sx={{ width: '100%', p: 4 }}>
             <Typography variant="h4" fontWeight={700} gutterBottom align="center" color="primary" mb={1}>
@@ -71,7 +82,19 @@ const Login = ({ setIsAuthenticated }) => {
                 autoFocus
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, 
+                  '& .MuiInputBase-root': {
+                    background: mode === 'dark' ? theme.palette.background.default : 'white',
+                    color: theme.palette.text.primary
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                  }
+                }}
+                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
+                InputProps={{
+                  style: { color: theme.palette.text.primary },
+                }}
               />
               <TextField
                 margin="normal"
@@ -84,7 +107,16 @@ const Login = ({ setIsAuthenticated }) => {
                 autoComplete="current-password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                sx={{ mb: 1 }}
+                sx={{ mb: 1, 
+                  '& .MuiInputBase-root': {
+                    background: mode === 'dark' ? theme.palette.background.default : 'white',
+                    color: theme.palette.text.primary
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                  }
+                }}
+                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -92,9 +124,15 @@ const Login = ({ setIsAuthenticated }) => {
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
-                  )
+                  ),
+                  style: { color: theme.palette.text.primary },
                 }}
               />
+              {error && (
+                <Typography color="error" sx={{ mb: 2, fontWeight: 500 }}>
+                  {error}
+                </Typography>
+              )}
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                 <FormControlLabel
                   control={<Checkbox checked={remember} onChange={e => setRemember(e.target.checked)} color="primary" />}
