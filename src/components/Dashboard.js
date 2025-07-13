@@ -1,4 +1,4 @@
-// src/components/Dashboard.js - Dashboard page with analytics cards and charts
+// Dashboard page with analytics cards and charts
 import React, { useState, useEffect } from 'react';
 import { Grid, Card, Typography, Box, LinearProgress, Chip, Avatar, Container, CircularProgress } from '@mui/material';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
