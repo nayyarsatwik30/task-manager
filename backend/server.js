@@ -4,8 +4,9 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config({ path: './config.env' });
 
-const { testConnection, initDatabase } = require('./db');
 const tasksRoutes = require('./routes/tasks');
+const authRoutes = require('./routes/auth');
+const { syncModels } = require('./models');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,6 +43,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/tasks', tasksRoutes);
+app.use('/api/auth', authRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -65,11 +67,8 @@ app.use((error, req, res, next) => {
 // Initialize server
 const startServer = async () => {
   try {
-    // Test database connection
-    await testConnection();
-    
-    // Initialize database tables
-    await initDatabase();
+    // Initialize database tables with Sequelize
+    await syncModels();
     
     // Start server
     app.listen(PORT, () => {

@@ -121,9 +121,6 @@ const Settings = ({ handleLogout }) => {
           <Typography variant="h6">Account Actions</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Button startIcon={<LogoutIcon />} variant="outlined" sx={{ mr: 2 }} onClick={() => setLogoutDialog(true)}>
-            Logout
-          </Button>
           <Button color="warning" variant="outlined" sx={{ mr: 2 }} onClick={() => setDeactivateDialog(true)}>
             Deactivate Account
           </Button>
@@ -156,15 +153,6 @@ const Settings = ({ handleLogout }) => {
             <DialogActions>
               <Button onClick={() => setDeleteDialog(false)}>Cancel</Button>
               <Button color="error" variant="contained" onClick={() => setDeleteDialog(false)}>Delete Permanently</Button>
-            </DialogActions>
-          </Dialog>
-          {/* Logout Dialog */}
-          <Dialog open={logoutDialog} onClose={() => setLogoutDialog(false)}>
-            <DialogTitle>Confirm Logout</DialogTitle>
-            <DialogContent>Are you sure you want to logout?</DialogContent>
-            <DialogActions>
-              <Button onClick={() => setLogoutDialog(false)}>Cancel</Button>
-              <Button color="error" variant="contained" onClick={() => { setLogoutDialog(false); handleLogout && handleLogout(); }}>Logout</Button>
             </DialogActions>
           </Dialog>
         </AccordionDetails>

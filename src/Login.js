@@ -17,16 +17,29 @@ const Login = ({ setIsAuthenticated }) => {
 
   const handleShowPassword = () => setShowPassword((show) => !show);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       setError('Email and password are required.');
       return;
     }
     setError('');
-    // TODO: Add real authentication logic here
-    setIsAuthenticated(true);
-    navigate('/');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAuthenticated && setIsAuthenticated(true);
+        navigate('/');
+      } else {
+        setError(data.message || 'Invalid email or password.');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    }
   };
 
   const handleGoogleLogin = () => {

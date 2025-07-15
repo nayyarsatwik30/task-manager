@@ -19,6 +19,20 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
   const handleMenu = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
+  const handleLogoutClick = () => {
+    setLogoutOpen(true);
+    handleClose();
+  };
+
+  const handleLogoutConfirm = () => {
+    setLogoutOpen(false);
+    handleLogout && handleLogout();
+  };
+
+  const handleLogoutCancel = () => {
+    setLogoutOpen(false);
+  };
+
   return (
     <AppBar 
       position="sticky" 
@@ -34,6 +48,18 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
       }}
     >
       <Toolbar sx={{ minHeight: HEADER_HEIGHT, height: HEADER_HEIGHT }}>
+        {/* Hamburger menu for mobile */}
+        {isMobile && (
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={onMobileMenuClick}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
         <Typography variant="h6" noWrap sx={{ fontWeight: 700, letterSpacing: 1, color: mode === 'light' ? 'black' : theme => theme.palette.text.primary, mr: 2 }}>
           MyApp
         </Typography>
@@ -59,7 +85,19 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
           >
             <MenuItem onClick={() => { handleClose(); navigate('/profile'); }}>Profile</MenuItem>
             <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>Settings</MenuItem>
+            <MenuItem onClick={handleLogoutClick}>Logout</MenuItem>
           </Menu>
+          {/* Logout Confirmation Dialog */}
+          <Dialog open={logoutOpen} onClose={handleLogoutCancel}>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogContent>
+              <Typography>Are you sure you want to log out?</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleLogoutCancel} color="primary">Cancel</Button>
+              <Button onClick={handleLogoutConfirm} color="error" variant="contained">Logout</Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       </Toolbar>
     </AppBar>

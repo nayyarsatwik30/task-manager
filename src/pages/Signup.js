@@ -44,13 +44,32 @@ const Signup = ({ setIsAuthenticated }) => {
     setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
-    setIsAuthenticated(true);
-    navigate('/');
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAuthenticated && setIsAuthenticated(true);
+        navigate('/');
+      } else {
+        setErrors({ api: data.message || 'Signup failed' });
+      }
+    } catch (err) {
+      setErrors({ api: 'Network error. Please try again.' });
+    }
   };
 
   const handleGoogleSignup = () => {
@@ -237,6 +256,9 @@ const Signup = ({ setIsAuthenticated }) => {
               />
               {errors.terms && (
                 <Typography variant="caption" color="error" sx={{ ml: 1, mb: 2, display: 'block' }}>{errors.terms}</Typography>
+              )}
+              {errors.api && (
+                <Typography variant="caption" color="error" sx={{ ml: 1, mb: 2, display: 'block' }}>{errors.api}</Typography>
               )}
               
               <Button

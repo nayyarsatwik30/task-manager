@@ -12,11 +12,13 @@
     "cra-template-pwa": "2.0.0",
     "dayjs": "^1.11.13",
     "framer-motion": "^12.23.0",
+    "mysql2": "^3.14.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.3",
     "react-scripts": "5.0.1",
     "recharts": "^3.0.2",
+    "sequelize": "^6.37.7",
     "web-vitals": "^5.0.3"
   },
   "scripts": {
