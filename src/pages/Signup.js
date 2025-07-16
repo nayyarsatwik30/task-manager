@@ -63,6 +63,10 @@ const Signup = ({ setIsAuthenticated }) => {
       const data = await res.json();
       if (data.success) {
         setIsAuthenticated && setIsAuthenticated(true);
+        // Store user email in localStorage for profile page
+        if (formData.email) {
+          localStorage.setItem('userEmail', formData.email);
+        }
         navigate('/');
       } else {
         setErrors({ api: data.message || 'Signup failed' });

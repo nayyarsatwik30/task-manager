@@ -33,6 +33,10 @@ const Login = ({ setIsAuthenticated }) => {
       const data = await res.json();
       if (data.success) {
         setIsAuthenticated && setIsAuthenticated(true);
+        // Store user email in localStorage for profile page
+        if (data.user && data.user.email) {
+          localStorage.setItem('userEmail', data.user.email);
+        }
         navigate('/');
       } else {
         setError(data.message || 'Invalid email or password.');

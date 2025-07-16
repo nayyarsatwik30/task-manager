@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Grid, Card, CardContent, Typography, Avatar, Button, Divider, TextField, IconButton, Paper, LinearProgress
 } from '@mui/material';
@@ -7,19 +7,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import LockIcon from '@mui/icons-material/Lock';
 import { deepPurple } from '@mui/material/colors';
-
-// Dummy user data (replace with real data from backend or context)
-const initialUser = {
-  avatar: '',
-  fullName: 'Satwik Kumar',
-  username: 'satwik',
-  email: 'satwik@gmail.com',
-  phone: '+91 9876543210',
-  role: 'Member',
-  totalTasksCompleted: 42,
-  lastLogin: '2024-07-09T10:00:00Z',
-  joined: '2023-01-15T09:00:00Z',
-};
+import axios from 'axios';
 
 function getPasswordStrength(password) {
   let score = 0;
@@ -31,15 +19,34 @@ function getPasswordStrength(password) {
 }
 
 const Profile = () => {
-  const [user, setUser] = useState(initialUser);
+  const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [editData, setEditData] = useState({
-    fullName: user.fullName,
-    email: user.email,
-    phone: user.phone,
-  });
+  const [editData, setEditData] = useState({ fullName: '', email: '', phone: '' });
   const [passwords, setPasswords] = useState({ old: '', new: '', confirm: '' });
   const [avatarEdit, setAvatarEdit] = useState(false);
+
+  useEffect(() => {
+    // Replace with actual logic to get the logged-in user's email (e.g., from auth context or localStorage)
+    const email = localStorage.getItem('userEmail');
+    if (!email) return;
+    axios.get(`http://localhost:5000/api/auth/me?email=${email}`)
+      .then(res => {
+        const u = res.data.user;
+        setUser({
+          avatar: '',
+          fullName: u.name,
+          username: u.name?.split(' ')[0]?.toLowerCase() || '',
+          email: u.email,
+          phone: u.phone || '',
+          role: 'Member',
+          totalTasksCompleted: u.totalTasksCompleted || 0,
+          lastLogin: u.lastLogin || '',
+          joined: u.created_at,
+        });
+        setEditData({ fullName: u.name, email: u.email, phone: u.phone || '' });
+      })
+      .catch(err => console.error(err));
+  }, []);
 
   const handleEdit = () => setEditMode(true);
   const handleCancel = () => {
@@ -56,6 +63,8 @@ const Profile = () => {
   const passwordStrength = getPasswordStrength(passwords.new);
   const passwordStrengthLabels = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
   const passwordStrengthColors = ['error', 'warning', 'info', 'success', 'success'];
+
+  if (!user) return <div>Loading...</div>;
 
   return (
     <Box sx={{ p: { xs: 1, md: 4 } }}>
@@ -90,8 +99,8 @@ const Profile = () => {
             <Divider sx={{ my: 2, width: '100%' }} />
             <Typography variant="subtitle2" color="text.secondary">Stats</Typography>
             <Typography variant="body2">Tasks Completed: <b>{user.totalTasksCompleted}</b></Typography>
-            <Typography variant="body2">Last Login: {new Date(user.lastLogin).toLocaleString()}</Typography>
-            <Typography variant="body2">Joined: {new Date(user.joined).toLocaleDateString()}</Typography>
+            <Typography variant="body2">Last Login: {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'N/A'}</Typography>
+            <Typography variant="body2">Joined: {user.joined ? new Date(user.joined).toLocaleDateString() : 'N/A'}</Typography>
           </Card>
         </Grid>
         {/* Edit Profile & Change Password */}
