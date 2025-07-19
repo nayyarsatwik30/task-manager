@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
-const TaskForm = ({ open, onClose, onSubmit, task = null, loading = false }) => {
+const TaskForm = ({ open, onClose, onSubmit, initialData, mode }) => {
   const theme = useTheme();
   const [formData, setFormData] = useState({
     title: '',
@@ -29,13 +29,13 @@ const TaskForm = ({ open, onClose, onSubmit, task = null, loading = false }) => 
 
   // Initialize form with task data if editing
   useEffect(() => {
-    if (task) {
+    if (initialData) {
       setFormData({
-        title: task.title || '',
-        description: task.description || '',
-        status: task.status || 'pending',
-        priority: task.priority || 'medium',
-        due_date: task.due_date || ''
+        title: initialData.title || '',
+        description: initialData.description || '',
+        status: initialData.status || 'pending',
+        priority: initialData.priority || 'medium',
+        due_date: initialData.due_date || ''
       });
     } else {
       setFormData({
@@ -47,7 +47,7 @@ const TaskForm = ({ open, onClose, onSubmit, task = null, loading = false }) => 
       });
     }
     setErrors({});
-  }, [task, open]);
+  }, [initialData, open]);
 
   const handleChange = (field) => (event) => {
     setFormData(prev => ({
@@ -126,7 +126,7 @@ const TaskForm = ({ open, onClose, onSubmit, task = null, loading = false }) => 
         color: 'primary.main',
         fontWeight: 600
       }}>
-        {task ? 'Edit Task' : 'Add New Task'}
+        {mode === 'edit' ? 'Edit Task' : 'Add New Task'}
       </DialogTitle>
       
       <form onSubmit={handleSubmit}>
@@ -220,7 +220,6 @@ const TaskForm = ({ open, onClose, onSubmit, task = null, loading = false }) => 
           <Button 
             onClick={handleClose}
             variant="outlined"
-            disabled={loading}
             sx={{ borderRadius: 2, px: 3 }}
           >
             Cancel
@@ -228,18 +227,14 @@ const TaskForm = ({ open, onClose, onSubmit, task = null, loading = false }) => 
           <Button 
             type="submit"
             variant="contained"
-            disabled={loading}
+            onClick={handleSubmit}
             sx={{ 
               borderRadius: 2, 
               px: 3,
               minWidth: 100
             }}
           >
-            {loading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              task ? 'Update' : 'Create'
-            )}
+            {mode === 'edit' ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
       </form>

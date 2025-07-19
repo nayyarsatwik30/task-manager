@@ -1,18 +1,28 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Chip, 
-  Button, 
-  Typography, 
+import {
+  Box,
+  Chip,
+  Button,
+  Typography,
   Alert,
   CircularProgress,
-  Fab,
-  Snackbar
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Divider,
+  TextField,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import dayjs from 'dayjs';
 import { useTasks } from '../hooks/useTasks';
 import TaskForm from '../components/TaskForm';
@@ -29,20 +39,42 @@ const statuses = [
   { value: 'completed', color: 'success', label: 'Completed' },
 ];
 
+const groupTasks = (tasks) => {
+  const today = dayjs().startOf('day');
+  const todayTasks = [];
+  const upcomingTasks = [];
+  const completedTasks = [];
+  tasks.forEach(task => {
+    if (task.status === 'completed') {
+      completedTasks.push(task);
+    } else if (task.due_date && dayjs(task.due_date).isSame(today, 'day')) {
+      todayTasks.push(task);
+    } else if (task.due_date && dayjs(task.due_date).isAfter(today, 'day')) {
+      upcomingTasks.push(task);
+    } else {
+      // No due date, treat as today
+      todayTasks.push(task);
+    }
+  });
+  return { todayTasks, upcomingTasks, completedTasks };
+};
+
 const MyTasks = () => {
-  const { 
-    tasks, 
-    loading, 
-    error, 
-    createTask, 
-    updateTask, 
-    deleteTask, 
-    clearError 
+  const {
+    tasks,
+    loading,
+    error,
+    createTask,
+    updateTask,
+    deleteTask,
+    clearError
   } = useTasks();
-  
+
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, taskId: null });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [addTaskTitle, setAddTaskTitle] = useState('');
 
   const handleAddTask = () => {
     setEditingTask(null);
@@ -63,113 +95,38 @@ const MyTasks = () => {
         await createTask(taskData);
         setSnackbar({ open: true, message: 'Task created successfully!', severity: 'success' });
       }
-      setFormOpen(false);
+      setAddTaskTitle('');
     } catch (error) {
       setSnackbar({ open: true, message: error.message, severity: 'error' });
     }
   };
 
-  const handleDeleteTask = async (id) => {
-    try {
-      await deleteTask(id);
-      setSnackbar({ open: true, message: 'Task deleted successfully!', severity: 'success' });
-    } catch (error) {
-      setSnackbar({ open: true, message: error.message, severity: 'error' });
+  const handleDeleteTask = (taskId) => {
+    setDeleteConfirm({ open: true, taskId });
+  };
+
+  const confirmDeleteTask = () => {
+    if (deleteConfirm.taskId) {
+      deleteTask(deleteConfirm.taskId);
     }
+    setDeleteConfirm({ open: false, taskId: null });
+  };
+
+  const cancelDeleteTask = () => {
+    setDeleteConfirm({ open: false, taskId: null });
   };
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const columns = [
-    { 
-      field: 'title', 
-      headerName: 'Task Title', 
-      flex: 1, 
-      minWidth: 200,
-      renderCell: (params) => (
-        <Box>
-          <Typography variant="body2" fontWeight={500}>
-            {params.value}
-          </Typography>
-          {params.row.description && (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-              {params.row.description.length > 50 
-                ? `${params.row.description.substring(0, 50)}...` 
-                : params.row.description
-              }
-            </Typography>
-          )}
-        </Box>
-      )
-    },
-    { 
-      field: 'priority', 
-      headerName: 'Priority', 
-      width: 120, 
-      renderCell: (params) => {
-        const priority = priorities.find(p => p.value === params.value);
-        return (
-          <Chip 
-            label={priority?.label || params.value} 
-            color={priority?.color || 'default'} 
-            size="small" 
-            variant="outlined"
-          />
-        );
-      }
-    },
-    { 
-      field: 'due_date', 
-      headerName: 'Due Date', 
-      width: 130, 
-      renderCell: (params) => (
-        params.value ? dayjs(params.value).format('MMM DD, YYYY') : 'No due date'
-      )
-    },
-    { 
-      field: 'status', 
-      headerName: 'Status', 
-      width: 130, 
-      renderCell: (params) => {
-        const status = statuses.find(s => s.value === params.value);
-        return (
-          <Chip 
-            label={status?.label || params.value} 
-            color={status?.color || 'default'} 
-            size="small"
-          />
-        );
-      }
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      headerName: 'Actions',
-      width: 120,
-      getActions: (params) => [
-        <GridActionsCellItem 
-          icon={<EditIcon />} 
-          label="Edit" 
-          onClick={() => handleEditTask(params.row)}
-          sx={{ color: 'primary.main' }}
-        />,
-        <GridActionsCellItem 
-          icon={<DeleteIcon />} 
-          label="Delete" 
-          onClick={() => handleDeleteTask(params.row.id)}
-          sx={{ color: 'error.main' }}
-        />,
-      ]
-    }
-  ];
+  const { todayTasks, upcomingTasks, completedTasks } = groupTasks(tasks);
 
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert 
-          severity="error" 
+        <Alert
+          severity="error"
           onClose={clearError}
           sx={{ mb: 2 }}
         >
@@ -179,111 +136,250 @@ const MyTasks = () => {
     );
   }
 
-  console.log("Tasks from useTasks:", tasks);
-  
   return (
-    <Box sx={{ position: 'relative', height: '100%', width: '100%' }}>
-      {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h5" fontWeight={600} color="primary">
-          My Tasks ({tasks.length})
-        </Typography>
+    <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4, p: { xs: 1, sm: 2 } }}>
+      <Typography variant="h5" fontWeight={700} mb={2} color="primary">
+        My Tasks
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+      {/* Inline Add Task */}
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+        <TextField
+          value={addTaskTitle}
+          onChange={e => setAddTaskTitle(e.target.value)}
+          placeholder="Add a new task..."
+          size="small"
+          fullWidth
+          onKeyDown={e => { if (e.key === 'Enter') handleAddTask(); }}
+        />
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleAddTask}
-          sx={{ borderRadius: 2 }}
+          sx={{ borderRadius: 2, minWidth: 40, px: 2 }}
         >
-          Add Task
+          Add
         </Button>
       </Box>
-
-      {/* DataGrid */}
-      <Box sx={{ 
-        height: 600, 
-        width: '100%', 
-        bgcolor: 'background.paper', 
-        borderRadius: 3, 
-        boxShadow: 2, 
-        p: 2,
-        position: 'relative'
-      }}>
-        {loading && (
-          <Box sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            bgcolor: 'rgba(255, 255, 255, 0.8)',
-            zIndex: 1,
-            borderRadius: 3
-          }}>
-            <CircularProgress />
-          </Box>
-        )}
-        
-        <DataGrid
-          rows={tasks}
-          columns={columns}
-          pageSize={10}
-          rowsPerPageOptions={[5, 10, 25]}
-          disableSelectionOnClick
-          autoHeight
-          sx={{
-            '& .MuiDataGrid-cell': {
-              borderBottom: '1px solid #f0f0f0',
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              bgcolor: 'grey.50',
-              borderBottom: '2px solid #e0e0e0',
-            },
-          }}
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          {/* Today Section */}
+          <Typography variant="h6" fontWeight={600} mt={3} mb={1}>Today</Typography>
+          <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
+            {todayTasks.length === 0 && (
+              <ListItem><ListItemText primary="No tasks for today!" /></ListItem>
+            )}
+            {todayTasks.map(task => (
+              <React.Fragment key={task.id}>
+                <ListItem
+                  alignItems="flex-start"
+                  secondaryAction={
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  }
+                >
+                  <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body1" fontWeight={500} sx={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
+                          {task.title}
+                        </Typography>
+                        {task.priority && (
+                          <Chip
+                            label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                            color={priorities.find(p => p.value === task.priority)?.color || 'default'}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                        )}
+                        {task.status && (
+                          <Chip
+                            label={statuses.find(s => s.value === task.status)?.label || task.status}
+                            color={statuses.find(s => s.value === task.status)?.color || 'default'}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                        )}
+                      </Box>
+                    }
+                    secondary={
+                      <>
+                        {task.description && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
+                          </Typography>
+                        )}
+                        <Typography variant="caption" color="text.secondary">
+                          {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+                <Divider component="li" />
+              </React.Fragment>
+            ))}
+          </List>
+          {/* Upcoming Section */}
+          <Typography variant="h6" fontWeight={600} mt={3} mb={1}>Upcoming</Typography>
+          <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
+            {upcomingTasks.length === 0 && (
+              <ListItem><ListItemText primary="No upcoming tasks!" /></ListItem>
+            )}
+            {upcomingTasks.map(task => (
+              <React.Fragment key={task.id}>
+                <ListItem
+                  alignItems="flex-start"
+                  secondaryAction={
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  }
+                >
+                  <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body1" fontWeight={500} sx={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
+                          {task.title}
+                        </Typography>
+                        {task.priority && (
+                          <Chip
+                            label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                            color={priorities.find(p => p.value === task.priority)?.color || 'default'}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                        )}
+                        {task.status && (
+                          <Chip
+                            label={statuses.find(s => s.value === task.status)?.label || task.status}
+                            color={statuses.find(s => s.value === task.status)?.color || 'default'}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                        )}
+                      </Box>
+                    }
+                    secondary={
+                      <>
+                        {task.description && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
+                          </Typography>
+                        )}
+                        <Typography variant="caption" color="text.secondary">
+                          {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+                <Divider component="li" />
+              </React.Fragment>
+            ))}
+          </List>
+          {/* Completed Section */}
+          <Typography variant="h6" fontWeight={600} mt={3} mb={1}>Completed</Typography>
+          <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
+            {completedTasks.length === 0 && (
+              <ListItem><ListItemText primary="No completed tasks yet!" /></ListItem>
+            )}
+            {completedTasks.map(task => (
+              <React.Fragment key={task.id}>
+                <ListItem
+                  alignItems="flex-start"
+                  secondaryAction={
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  }
+                >
+                  <CheckCircleIcon sx={{ color: 'success.main', mr: 2, mt: 0.5 }} />
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body1" fontWeight={500} sx={{ textDecoration: 'line-through' }}>
+                          {task.title}
+                        </Typography>
+                        {task.priority && (
+                          <Chip
+                            label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                            color={priorities.find(p => p.value === task.priority)?.color || 'default'}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                        )}
+                        <Chip label="Completed" color="success" size="small" sx={{ ml: 1 }} />
+                      </Box>
+                    }
+                    secondary={
+                      <>
+                        {task.description && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
+                          </Typography>
+                        )}
+                        <Typography variant="caption" color="text.secondary">
+                          {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+                <Divider component="li" />
+              </React.Fragment>
+            ))}
+          </List>
+        </>
+      )}
+      {/* Edit Task Dialog */}
+      {formOpen && (
+        <TaskForm
+          open={formOpen}
+          onClose={() => { setFormOpen(false); setEditingTask(null); }}
+          onSubmit={handleFormSubmit}
+          initialData={editingTask}
+          mode={editingTask ? 'edit' : 'add'}
         />
-      </Box>
-
-      {/* Floating Action Button */}
-      <Fab
-        color="primary"
-        aria-label="add task"
-        onClick={handleAddTask}
-        sx={{
-          position: 'fixed',
-          bottom: 24,
-          right: 24,
-          boxShadow: 4,
-        }}
-      >
-        <AddIcon />
-      </Fab>
-
-      {/* Task Form Dialog */}
-      <TaskForm
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSubmit={handleFormSubmit}
-        task={editingTask}
-        loading={loading}
-      />
-
-      {/* Snackbar for notifications */}
+      )}
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirm.open} onClose={cancelDeleteTask}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>Are you sure you want to delete this task?</DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDeleteTask}>Cancel</Button>
+          <Button onClick={confirmDeleteTask} color="error">Delete</Button>
+        </DialogActions>
+      </Dialog>
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={6000}
+        autoHideDuration={3000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+        message={snackbar.message}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </Box>
   );
 };

@@ -3,6 +3,9 @@ const bcrypt = require('bcrypt');
 const { User } = require('../models');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const { OAuth2Client } = require('google-auth-library');
+const GOOGLE_CLIENT_ID = '862607090612-h287u3ho2jcpf7nul1g3lf8beoria71g.apps.googleusercontent.com';
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const router = express.Router();
 
@@ -97,6 +100,27 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Google login route
+router.post('/google', async (req, res) => {
+  // Accept both 'token' and 'credential' from frontend
+  const token = req.body.token || req.body.credential;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, name } = payload;
+    let user = await User.findOne({ where: { email } });
+    if (!user) {
+      user = await User.create({ name, email, password: '', verified: true });
+    }
+    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
+  } catch (error) {
+    res.status(401).json({ success: false, message: 'Google authentication failed' });
   }
 });
 
