@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Chip,
-  Button,
-  Typography,
+import { 
+  Box, 
+  Chip, 
+  Button, 
+  Typography, 
   Alert,
   CircularProgress,
   IconButton,
@@ -59,17 +59,30 @@ const groupTasks = (tasks) => {
   return { todayTasks, upcomingTasks, completedTasks };
 };
 
-const MyTasks = () => {
-  const {
-    tasks,
-    loading,
-    error,
-    createTask,
-    updateTask,
-    deleteTask,
-    clearError
-  } = useTasks();
+// Helper to group tasks by project and section
+const groupTasksByProjectAndSection = (tasks) => {
+  const grouped = {};
+  tasks.forEach(task => {
+    const project = task.project || 'Other';
+    const section = task.section || 'General';
+    if (!grouped[project]) grouped[project] = {};
+    if (!grouped[project][section]) grouped[project][section] = [];
+    grouped[project][section].push(task);
+  });
+  return grouped;
+};
 
+const MyTasks = () => {
+  const { 
+    tasks, 
+    loading, 
+    error, 
+    createTask, 
+    updateTask, 
+    deleteTask, 
+    clearError 
+  } = useTasks();
+  
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, taskId: null });
@@ -120,13 +133,13 @@ const MyTasks = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const { todayTasks, upcomingTasks, completedTasks } = groupTasks(tasks);
+  const groupedTasks = groupTasksByProjectAndSection(tasks);
 
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert
-          severity="error"
+        <Alert 
+          severity="error" 
           onClose={clearError}
           sx={{ mb: 2 }}
         >
@@ -135,12 +148,12 @@ const MyTasks = () => {
       </Box>
     );
   }
-
+  
   return (
-    <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4, p: { xs: 1, sm: 2 } }}>
+    <Box sx={{ maxWidth: 900, mx: 'auto', mt: 4, p: { xs: 1, sm: 2 } }}>
       <Typography variant="h5" fontWeight={700} mb={2} color="primary">
         My Tasks
-      </Typography>
+        </Typography>
       <Divider sx={{ mb: 2 }} />
       {/* Inline Add Task */}
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
@@ -163,203 +176,100 @@ const MyTasks = () => {
       </Box>
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <CircularProgress />
-        </Box>
+            <CircularProgress />
+          </Box>
       ) : (
         <>
-          {/* Today Section */}
-          <Typography variant="h6" fontWeight={600} mt={3} mb={1}>Today</Typography>
-          <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
-            {todayTasks.length === 0 && (
-              <ListItem><ListItemText primary="No tasks for today!" /></ListItem>
-            )}
-            {todayTasks.map(task => (
-              <React.Fragment key={task.id}>
-                <ListItem
-                  alignItems="flex-start"
-                  secondaryAction={
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  }
-                >
-                  <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body1" fontWeight={500} sx={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
-                          {task.title}
-                        </Typography>
-                        {task.priority && (
-                          <Chip
-                            label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                            color={priorities.find(p => p.value === task.priority)?.color || 'default'}
-                            size="small"
-                            sx={{ ml: 1 }}
+          {Object.keys(groupedTasks).length === 0 && (
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 4 }}>
+              No tasks yet. Add your first task!
+            </Typography>
+          )}
+          {Object.entries(groupedTasks).map(([project, sections]) => (
+            <Box key={project} sx={{ mb: 4 }}>
+              <Typography variant="h6" fontWeight={700} color="primary" sx={{ mb: 1, mt: 3 }}>
+                {project}
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+              {Object.entries(sections).map(([section, sectionTasks]) => (
+                <Box key={section} sx={{ mb: 2, ml: 2 }}>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+                    {section}
+                  </Typography>
+                  <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
+                    {sectionTasks.length === 0 && (
+                      <ListItem><ListItemText primary={`No tasks in ${section}`} /></ListItem>
+                    )}
+                    {sectionTasks.map(task => (
+                      <React.Fragment key={task.id}>
+                        <ListItem
+                          alignItems="flex-start"
+                          secondaryAction={
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          }
+                        >
+                          <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body1" fontWeight={500} sx={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
+                                  {task.title}
+                                </Typography>
+                                {task.priority && (
+                                  <Chip
+                                    label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                                    color={priorities.find(p => p.value === task.priority)?.color || 'default'}
+                                    size="small"
+                                    sx={{ ml: 1 }}
+                                  />
+                                )}
+                                {task.status && (
+                                  <Chip
+                                    label={statuses.find(s => s.value === task.status)?.label || task.status}
+                                    color={statuses.find(s => s.value === task.status)?.color || 'default'}
+                                    size="small"
+                                    sx={{ ml: 1 }}
+                                  />
+                                )}
+                              </Box>
+                            }
+                            secondary={
+                              <>
+                                {task.description && (
+                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                    {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
+                                  </Typography>
+                                )}
+                                <Typography variant="caption" color="text.secondary">
+                                  {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
+                                </Typography>
+                              </>
+                            }
                           />
-                        )}
-                        {task.status && (
-                          <Chip
-                            label={statuses.find(s => s.value === task.status)?.label || task.status}
-                            color={statuses.find(s => s.value === task.status)?.color || 'default'}
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                        )}
-                      </Box>
-                    }
-                    secondary={
-                      <>
-                        {task.description && (
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                            {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
-                          </Typography>
-                        )}
-                        <Typography variant="caption" color="text.secondary">
-                          {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
-                        </Typography>
-                      </>
-                    }
-                  />
-                </ListItem>
-                <Divider component="li" />
-              </React.Fragment>
-            ))}
-          </List>
-          {/* Upcoming Section */}
-          <Typography variant="h6" fontWeight={600} mt={3} mb={1}>Upcoming</Typography>
-          <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
-            {upcomingTasks.length === 0 && (
-              <ListItem><ListItemText primary="No upcoming tasks!" /></ListItem>
-            )}
-            {upcomingTasks.map(task => (
-              <React.Fragment key={task.id}>
-                <ListItem
-                  alignItems="flex-start"
-                  secondaryAction={
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  }
-                >
-                  <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body1" fontWeight={500} sx={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
-                          {task.title}
-                        </Typography>
-                        {task.priority && (
-                          <Chip
-                            label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                            color={priorities.find(p => p.value === task.priority)?.color || 'default'}
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                        )}
-                        {task.status && (
-                          <Chip
-                            label={statuses.find(s => s.value === task.status)?.label || task.status}
-                            color={statuses.find(s => s.value === task.status)?.color || 'default'}
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                        )}
-                      </Box>
-                    }
-                    secondary={
-                      <>
-                        {task.description && (
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                            {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
-                          </Typography>
-                        )}
-                        <Typography variant="caption" color="text.secondary">
-                          {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
-                        </Typography>
-                      </>
-                    }
-                  />
-                </ListItem>
-                <Divider component="li" />
-              </React.Fragment>
-            ))}
-          </List>
-          {/* Completed Section */}
-          <Typography variant="h6" fontWeight={600} mt={3} mb={1}>Completed</Typography>
-          <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
-            {completedTasks.length === 0 && (
-              <ListItem><ListItemText primary="No completed tasks yet!" /></ListItem>
-            )}
-            {completedTasks.map(task => (
-              <React.Fragment key={task.id}>
-                <ListItem
-                  alignItems="flex-start"
-                  secondaryAction={
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  }
-                >
-                  <CheckCircleIcon sx={{ color: 'success.main', mr: 2, mt: 0.5 }} />
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body1" fontWeight={500} sx={{ textDecoration: 'line-through' }}>
-                          {task.title}
-                        </Typography>
-                        {task.priority && (
-                          <Chip
-                            label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                            color={priorities.find(p => p.value === task.priority)?.color || 'default'}
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                        )}
-                        <Chip label="Completed" color="success" size="small" sx={{ ml: 1 }} />
-                      </Box>
-                    }
-                    secondary={
-                      <>
-                        {task.description && (
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                            {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
-                          </Typography>
-                        )}
-                        <Typography variant="caption" color="text.secondary">
-                          {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
-                        </Typography>
-                      </>
-                    }
-                  />
-                </ListItem>
-                <Divider component="li" />
-              </React.Fragment>
-            ))}
-          </List>
+                        </ListItem>
+                        <Divider component="li" />
+                      </React.Fragment>
+                    ))}
+                  </List>
+                </Box>
+              ))}
+            </Box>
+          ))}
         </>
       )}
       {/* Edit Task Dialog */}
       {formOpen && (
-        <TaskForm
-          open={formOpen}
+      <TaskForm
+        open={formOpen}
           onClose={() => { setFormOpen(false); setEditingTask(null); }}
-          onSubmit={handleFormSubmit}
+        onSubmit={handleFormSubmit}
           initialData={editingTask}
           mode={editingTask ? 'edit' : 'add'}
         />

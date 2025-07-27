@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const { User } = require('../models');
+const { User, Task } = require('../models');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
@@ -27,6 +27,22 @@ async function sendVerificationEmail(user, verificationToken) {
   });
 }
 
+// Helper: create starter tasks for new users
+async function createStarterTasksForUser(user) {
+  const starterTasks = [
+    // Home project
+    { title: 'Do a weekly review of my tasks and goals', description: '', status: 'pending', priority: 'medium', project: 'Home', section: 'Routines', email: user.email },
+    { title: "Explore Todoist's curated personal templates", description: '', status: 'pending', priority: 'medium', project: 'Home', section: 'Inspiration', email: user.email },
+    // Education project
+    { title: 'Review upcoming exam dates and plan ahead', description: '', status: 'pending', priority: 'medium', project: 'Education', section: 'Routines', email: user.email },
+    { title: "Explore Todoist's curated education templates", description: '', status: 'pending', priority: 'medium', project: 'Education', section: 'Inspiration', email: user.email },
+    // My Work project
+    { title: 'Review my day and plan ahead', description: '', status: 'pending', priority: 'medium', project: 'My Work', section: 'Routines', email: user.email },
+    { title: 'Todoist Integrations That Will Boost Your Productivity', description: '', status: 'pending', priority: 'medium', project: 'My Work', section: 'Inspiration', email: user.email },
+  ];
+  await Task.bulkCreate(starterTasks);
+}
+
 // Signup route
 router.post('/signup', async (req, res) => {
   const { name, email, password } = req.body;
@@ -45,6 +61,8 @@ router.post('/signup', async (req, res) => {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     // Insert user (unverified)
     const newUser = await User.create({ name, email, password: hashedPassword, verified: false, verificationToken });
+    // Add starter tasks
+    await createStarterTasksForUser(newUser);
     // Send verification email
     await sendVerificationEmail(newUser, verificationToken);
     res.json({ success: true, message: 'User registered successfully. Please check your email to verify your account.', userId: newUser.id });
@@ -115,8 +133,13 @@ router.post('/google', async (req, res) => {
     const payload = ticket.getPayload();
     const { email, name } = payload;
     let user = await User.findOne({ where: { email } });
+    let isNew = false;
     if (!user) {
       user = await User.create({ name, email, password: '', verified: true });
+      isNew = true;
+    }
+    if (isNew) {
+      await createStarterTasksForUser(user);
     }
     res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
   } catch (error) {

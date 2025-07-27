@@ -1,6 +1,6 @@
 // src/layout/MainLayout.js - Main layout wrapper for dashboard (Sidebar + Header)
 import React, { useState } from 'react';
-import { Box, useTheme, useMediaQuery, IconButton } from '@mui/material';
+import { Box, useTheme, useMediaQuery, IconButton, AppBar, Toolbar } from '@mui/material';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 
@@ -15,7 +15,15 @@ const MainLayout = ({ children, handleLogout }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default', transition: 'background-color 0.4s' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        transition: 'background-color 0.4s',
+        overflow: 'hidden'
+      }}
+    >
       <Sidebar
         open={isMobile ? false : sidebarOpen}
         setOpen={setSidebarOpen}
@@ -25,26 +33,36 @@ const MainLayout = ({ children, handleLogout }) => {
         setCollapsed={setCollapsed}
         variant={isMobile ? 'temporary' : 'persistent'}
       />
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, ml: !isMobile && sidebarOpen ? (collapsed ? `${miniWidth}px` : `${drawerWidth}px`) : 0, transition: 'margin-left 0.3s' }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          ml: { xs: 0, md: collapsed ? '64px' : '240px' },
+          transition: 'margin-left 0.2s'
+        }}
+      >
+        {/* Render Header directly so it can control its own margin/width */}
         <Header
           onMobileMenuClick={() => isMobile ? setMobileOpen(true) : setSidebarOpen(true)}
           handleLogout={handleLogout}
-          sx={{ width: '100%', boxShadow: 'none' }}
           isMobile={isMobile}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
         />
-        {/* Floating open button for desktop when sidebar is closed */}
-        {!isMobile && !sidebarOpen && (
-          <Box sx={{ position: 'fixed', top: 16, left: 16, zIndex: 1300 }}>
-            <Box sx={{ bgcolor: 'primary.main', borderRadius: '50%', boxShadow: 3 }}>
-              <IconButton onClick={() => setSidebarOpen(true)} sx={{ color: 'white' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </IconButton>
-            </Box>
-          </Box>
-        )}
-        <Box component="main" sx={{ flex: 1, p: { xs: 1, sm: 2, md: 4 }, overflow: 'auto', width: '100%', minHeight: 400, transition: 'padding 0.3s' }}>
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            p: { xs: 1, sm: 2, md: 4 },
+            overflow: 'auto',
+            width: '100%',
+            minHeight: 400,
+            transition: 'padding 0.3s',
+            bgcolor: 'background.default'
+          }}
+        >
           {children}
         </Box>
       </Box>
@@ -52,4 +70,4 @@ const MainLayout = ({ children, handleLogout }) => {
   );
 };
 
-export default MainLayout; 
+export default MainLayout;

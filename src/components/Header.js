@@ -4,6 +4,8 @@ import { AppBar, Toolbar, Typography, IconButton, Avatar, Menu, MenuItem, Toolti
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useThemeMode } from '../context/ThemeContext';
 import { useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -12,9 +14,18 @@ const HEADER_HEIGHT = 64;
 
 const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setCollapsed }) => {
   const { mode, toggleMode } = useThemeMode();
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Calculate dynamic margin and width based on sidebar state
+  let marginLeft = 0;
+  let width = '100%';
+  if (!isMobile) {
+    marginLeft = collapsed ? '64px' : '240px';
+    width = collapsed ? 'calc(100% - 64px)' : 'calc(100% - 240px)';
+  }
 
   const handleMenu = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -43,35 +54,40 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
         minHeight: HEADER_HEIGHT,
         height: HEADER_HEIGHT,
         transition: 'background-color 0.4s',
-        background: mode === 'light' ? '#fff' : theme => theme.palette.background.default,
+        bgcolor: theme.palette.background.paper, // Always match sidebar color
+        boxShadow: 'none',
         ...sx
       }}
     >
-      <Toolbar sx={{ minHeight: HEADER_HEIGHT, height: HEADER_HEIGHT }}>
-        {/* Hamburger menu for mobile */}
-        {isMobile && (
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={onMobileMenuClick}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-        )}
-        <Typography variant="h6" noWrap sx={{ fontWeight: 700, letterSpacing: 1, color: mode === 'light' ? 'black' : theme => theme.palette.text.primary, mr: 2 }}>
+      <Toolbar sx={{ minHeight: HEADER_HEIGHT, height: HEADER_HEIGHT, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
+        {/* Left side: App name */}
+        <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 700, fontSize: '1.2rem', letterSpacing: 1 }}>
           MyApp
         </Typography>
-        <Box sx={{ flexGrow: 1 }} />
-        <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-          <IconButton color="inherit" onClick={toggleMode} sx={{ mr: 2, color: mode === 'light' ? 'black' : theme => theme.palette.text.primary }}>
-            {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-          </IconButton>
-        </Tooltip>
-        <Box>
+        {/* Right side: theme toggle, avatar, menu */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <IconButton 
+              color="inherit" 
+              onClick={toggleMode} 
+              sx={{ 
+                mr: 2, 
+                color: mode === 'light' ? 'black' : 'white',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+              }}
+            >
+              {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Account">
-            <IconButton onClick={handleMenu} size="small" sx={{ color: mode === 'light' ? 'black' : theme => theme.palette.text.primary }}>
+            <IconButton 
+              onClick={handleMenu} 
+              size="small" 
+              sx={{ 
+                color: mode === 'light' ? 'black' : 'white',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+              }}
+            >
               <Avatar alt="User" src="" />
             </IconButton>
           </Tooltip>

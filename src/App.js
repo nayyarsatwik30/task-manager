@@ -35,6 +35,7 @@ function App() {
                 <MainLayout handleLogout={handleLogout}>
                   <Routes>
                     <Route path="/" element={<React.Suspense fallback={null}><Dashboard /></React.Suspense>} />
+                    <Route path="/dashboard" element={<React.Suspense fallback={null}><Dashboard /></React.Suspense>} />
                     <Route path="/tasks" element={<MyTasks />} />
                     <Route path="/calendar" element={<Calendar />} />
                     <Route path="/settings" element={<Settings handleLogout={handleLogout} />} />
