@@ -230,17 +230,59 @@ async function sendVerificationEmail(user, verificationToken) {
 // Helper: create starter tasks for new users
 async function createStarterTasksForUser(user) {
   const starterTasks = [
-    // Home project
-    { title: 'Do a weekly review of my tasks and goals', description: '', status: 'pending', priority: 'medium', project: 'Home', section: 'Routines', email: user.email },
-    { title: "Explore Todoist's curated personal templates", description: '', status: 'pending', priority: 'medium', project: 'Home', section: 'Inspiration', email: user.email },
-    // Education project
-    { title: 'Review upcoming exam dates and plan ahead', description: '', status: 'pending', priority: 'medium', project: 'Education', section: 'Routines', email: user.email },
-    { title: "Explore Todoist's curated education templates", description: '', status: 'pending', priority: 'medium', project: 'Education', section: 'Inspiration', email: user.email },
-    // My Work project
-    { title: 'Review my day and plan ahead', description: '', status: 'pending', priority: 'medium', project: 'My Work', section: 'Routines', email: user.email },
-    { title: 'Todoist Integrations That Will Boost Your Productivity', description: '', status: 'pending', priority: 'medium', project: 'My Work', section: 'Inspiration', email: user.email },
+    {
+      title: '🎉 Welcome to Task Manager!',
+      description: 'Explore the app features: Dashboard, My Tasks, and Calendar. Mark this as complete when you\'re familiar with the interface.',
+      status: 'pending',
+      priority: 'high',
+      category: 'Getting Started',
+      userId: user.id,
+      due_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) // Due tomorrow
+    },
+    {
+      title: 'Create your first personal task',
+      description: 'Add a task that\'s important to you - it could be work-related, personal, or a hobby project.',
+      status: 'pending',
+      priority: 'medium',
+      category: 'Getting Started',
+      userId: user.id,
+      due_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) // Due in 2 days
+    },
+    {
+      title: 'Set up your weekly planning routine',
+      description: 'Schedule 15 minutes each week to review completed tasks and plan upcoming ones.',
+      status: 'pending',
+      priority: 'medium',
+      category: 'Productivity',
+      userId: user.id,
+      due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Due in 1 week
+    },
+    {
+      title: 'Try the Calendar view',
+      description: 'Check out the Calendar page to see your tasks in a visual timeline. You can add tasks directly from the calendar!',
+      status: 'pending',
+      priority: 'low',
+      category: 'Getting Started',
+      userId: user.id,
+      due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // Due in 3 days
+    },
+    {
+      title: 'Customize your task priorities',
+      description: 'Experiment with High, Medium, and Low priority levels to organize your tasks effectively.',
+      status: 'pending',
+      priority: 'low',
+      category: 'Productivity',
+      userId: user.id,
+      due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) // Due in 5 days
+    }
   ];
-  await Task.bulkCreate(starterTasks);
+  
+  try {
+    await Task.bulkCreate(starterTasks);
+    console.log(`Created ${starterTasks.length} starter tasks for user: ${user.email}`);
+  } catch (error) {
+    console.error('Error creating starter tasks:', error);
+  }
 }
 
 // Signup route
