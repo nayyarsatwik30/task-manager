@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useThemeMode } from './context/ThemeContext';
 import { useTheme } from '@mui/material';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import AnimatedBackground from './components/AnimatedBackground';
 
 const Login = ({ setIsAuthenticated }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -60,35 +61,36 @@ const Login = ({ setIsAuthenticated }) => {
   };
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      background: mode === 'light' 
-        ? 'linear-gradient(135deg, #1976d2 0%, #1565c0 50%, #0d47a1 100%)'
-        : 'linear-gradient(135deg, #181a20 0%, #23272f 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      p: 2
-    }}>
-      <Grid container sx={{ maxWidth: 500, width: '100%' }}>
-        <Grid item xs={12} component={Paper} elevation={6} square sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+    <AnimatedBackground>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          alignItems: 'center',
           justifyContent: 'center',
-          background: mode === 'light' 
-            ? 'rgba(255,255,255,0.95)'
-            : theme.palette.background.paper,
-          backdropFilter: 'blur(10px)',
-          borderRadius: 3,
-          color: theme.palette.text.primary
-        }}>
-          <Box sx={{ width: '100%', p: 4 }}>
-            <Typography variant="h4" fontWeight={700} gutterBottom align="center" color="primary" mb={1}>
-              Welcome to MyApp
-            </Typography>
-            <Typography variant="body2" color="text.secondary" align="center" mb={4}>
-              Sign in to your account to continue
-            </Typography>
+          p: 3,
+        }}
+      >
+        <Grid container sx={{ maxWidth: 500, width: '100%' }}>
+          <Grid item xs={12} component={Paper} elevation={6} square sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            background: mode === 'light' 
+              ? 'rgba(255,255,255,0.95)'
+              : theme.palette.background.paper,
+            backdropFilter: 'blur(10px)',
+            borderRadius: 3,
+            color: theme.palette.text.primary
+          }}>
+            <Box sx={{ width: '100%', p: 4 }}>
+              <Typography variant="h4" fontWeight={700} gutterBottom align="center" color="primary" mb={1}>
+                Welcome to MyApp
+              </Typography>
+              <Typography variant="body2" color="text.secondary" align="center" mb={4}>
+                Sign in to your account to continue
+              </Typography>
             
             <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
               <TextField
@@ -246,11 +248,12 @@ const Login = ({ setIsAuthenticated }) => {
                 </Link>
               </Typography>
             </Box>
-          </Box>
+            </Box>
+          </Grid>
         </Grid>
-      </Grid>
-    </Box>
+      </Box>
+    </AnimatedBackground>
   );
 };
 
-export default Login; 
+export default Login;
