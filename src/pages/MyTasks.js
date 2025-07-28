@@ -59,18 +59,7 @@ const groupTasks = (tasks) => {
   return { todayTasks, upcomingTasks, completedTasks };
 };
 
-// Helper to group tasks by project and section
-const groupTasksByProjectAndSection = (tasks) => {
-  const grouped = {};
-  tasks.forEach(task => {
-    const project = task.project || 'Other';
-    const section = task.section || 'General';
-    if (!grouped[project]) grouped[project] = {};
-    if (!grouped[project][section]) grouped[project][section] = [];
-    grouped[project][section].push(task);
-  });
-  return grouped;
-};
+
 
 const MyTasks = () => {
   const { 
@@ -133,7 +122,7 @@ const MyTasks = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const groupedTasks = groupTasksByProjectAndSection(tasks);
+  const { todayTasks, upcomingTasks, completedTasks } = groupTasks(tasks);
 
   if (error) {
     return (
@@ -180,88 +169,215 @@ const MyTasks = () => {
           </Box>
       ) : (
         <>
-          {Object.keys(groupedTasks).length === 0 && (
+          {tasks.length === 0 && (
             <Typography variant="body1" color="text.secondary" sx={{ mt: 4 }}>
               No tasks yet. Add your first task!
             </Typography>
           )}
-          {Object.entries(groupedTasks).map(([project, sections]) => (
-            <Box key={project} sx={{ mb: 4 }}>
-              <Typography variant="h6" fontWeight={700} color="primary" sx={{ mb: 1, mt: 3 }}>
-                {project}
+          
+          {/* Today's Tasks */}
+          {todayTasks.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" fontWeight={700} color="primary" sx={{ mb: 2 }}>
+                📅 Today's Tasks ({todayTasks.length})
               </Typography>
-              <Divider sx={{ mb: 2 }} />
-              {Object.entries(sections).map(([section, sectionTasks]) => (
-                <Box key={section} sx={{ mb: 2, ml: 2 }}>
-                  <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
-                    {section}
-                  </Typography>
-                  <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
-                    {sectionTasks.length === 0 && (
-                      <ListItem><ListItemText primary={`No tasks in ${section}`} /></ListItem>
-                    )}
-                    {sectionTasks.map(task => (
-                      <React.Fragment key={task.id}>
-                        <ListItem
-                          alignItems="flex-start"
-                          secondaryAction={
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          }
-                        >
-                          <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
-                          <ListItemText
-                            primary={
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="body1" fontWeight={500} sx={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
-                                  {task.title}
-                                </Typography>
-                                {task.priority && (
-                                  <Chip
-                                    label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                                    color={priorities.find(p => p.value === task.priority)?.color || 'default'}
-                                    size="small"
-                                    sx={{ ml: 1 }}
-                                  />
-                                )}
-                                {task.status && (
-                                  <Chip
-                                    label={statuses.find(s => s.value === task.status)?.label || task.status}
-                                    color={statuses.find(s => s.value === task.status)?.color || 'default'}
-                                    size="small"
-                                    sx={{ ml: 1 }}
-                                  />
-                                )}
-                              </Box>
-                            }
-                            secondary={
-                              <>
-                                {task.description && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                    {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
-                                  </Typography>
-                                )}
-                                <Typography variant="caption" color="text.secondary">
-                                  {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
-                                </Typography>
-                              </>
-                            }
-                          />
-                        </ListItem>
-                        <Divider component="li" />
-                      </React.Fragment>
-                    ))}
-                  </List>
-                </Box>
-              ))}
+              <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
+                {todayTasks.map(task => (
+                  <React.Fragment key={task.id}>
+                    <ListItem
+                      alignItems="flex-start"
+                      secondaryAction={
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      }
+                    >
+                      <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body1" fontWeight={500} sx={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
+                              {task.title}
+                            </Typography>
+                            {task.priority && (
+                              <Chip
+                                label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                                color={priorities.find(p => p.value === task.priority)?.color || 'default'}
+                                size="small"
+                                sx={{ ml: 1 }}
+                              />
+                            )}
+                            {task.status && (
+                              <Chip
+                                label={statuses.find(s => s.value === task.status)?.label || task.status}
+                                color={statuses.find(s => s.value === task.status)?.color || 'default'}
+                                size="small"
+                                sx={{ ml: 1 }}
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <>
+                            {task.description && (
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
+                              </Typography>
+                            )}
+                            <Typography variant="caption" color="text.secondary">
+                              {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
+                            </Typography>
+                          </>
+                        }
+                      />
+                    </ListItem>
+                    <Divider component="li" />
+                  </React.Fragment>
+                ))}
+              </List>
             </Box>
-          ))}
+          )}
+          
+          {/* Upcoming Tasks */}
+          {upcomingTasks.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" fontWeight={700} color="primary" sx={{ mb: 2 }}>
+                ⏰ Upcoming Tasks ({upcomingTasks.length})
+              </Typography>
+              <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
+                {upcomingTasks.map(task => (
+                  <React.Fragment key={task.id}>
+                    <ListItem
+                      alignItems="flex-start"
+                      secondaryAction={
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      }
+                    >
+                      <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body1" fontWeight={500} sx={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
+                              {task.title}
+                            </Typography>
+                            {task.priority && (
+                              <Chip
+                                label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                                color={priorities.find(p => p.value === task.priority)?.color || 'default'}
+                                size="small"
+                                sx={{ ml: 1 }}
+                              />
+                            )}
+                            {task.status && (
+                              <Chip
+                                label={statuses.find(s => s.value === task.status)?.label || task.status}
+                                color={statuses.find(s => s.value === task.status)?.color || 'default'}
+                                size="small"
+                                sx={{ ml: 1 }}
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <>
+                            {task.description && (
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
+                              </Typography>
+                            )}
+                            <Typography variant="caption" color="text.secondary">
+                              {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
+                            </Typography>
+                          </>
+                        }
+                      />
+                    </ListItem>
+                    <Divider component="li" />
+                  </React.Fragment>
+                ))}
+              </List>
+            </Box>
+          )}
+          
+          {/* Completed Tasks */}
+          {completedTasks.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" fontWeight={700} color="primary" sx={{ mb: 2 }}>
+                ✅ Completed Tasks ({completedTasks.length})
+              </Typography>
+              <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
+                {completedTasks.map(task => (
+                  <React.Fragment key={task.id}>
+                    <ListItem
+                      alignItems="flex-start"
+                      secondaryAction={
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      }
+                    >
+                      <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body1" fontWeight={500} sx={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
+                              {task.title}
+                            </Typography>
+                            {task.priority && (
+                              <Chip
+                                label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                                color={priorities.find(p => p.value === task.priority)?.color || 'default'}
+                                size="small"
+                                sx={{ ml: 1 }}
+                              />
+                            )}
+                            {task.status && (
+                              <Chip
+                                label={statuses.find(s => s.value === task.status)?.label || task.status}
+                                color={statuses.find(s => s.value === task.status)?.color || 'default'}
+                                size="small"
+                                sx={{ ml: 1 }}
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <>
+                            {task.description && (
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                {task.description.length > 80 ? `${task.description.substring(0, 80)}...` : task.description}
+                              </Typography>
+                            )}
+                            <Typography variant="caption" color="text.secondary">
+                              {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
+                            </Typography>
+                          </>
+                        }
+                      />
+                    </ListItem>
+                    <Divider component="li" />
+                  </React.Fragment>
+                ))}
+              </List>
+            </Box>
+          )}
         </>
       )}
       {/* Edit Task Dialog */}

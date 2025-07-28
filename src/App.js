@@ -2,19 +2,16 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Login';
 import Signup from './pages/Signup';
+import VerifyEmail from './pages/VerifyEmail';
 import MainLayout from './layout/MainLayout';
 import { ThemeProvider } from './context/ThemeContext';
 import MyTasks from './pages/MyTasks';
 import { Box, Typography } from '@mui/material';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import CalendarPage from './pages/Calendar';
 
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
-const Calendar = () => (
-  <Box sx={{ p: 4, minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <Typography variant="h4" color="primary">Calendar Page</Typography>
-  </Box>
-);
 
 function App() {
   // For demo: fake auth state. Replace with real auth logic later.
@@ -28,6 +25,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
+          <Route path="/verify-email" element={<VerifyEmail setIsAuthenticated={setIsAuthenticated} />} />
           <Route
             path="/*"
             element={
@@ -37,7 +35,7 @@ function App() {
                     <Route path="/" element={<React.Suspense fallback={null}><Dashboard /></React.Suspense>} />
                     <Route path="/dashboard" element={<React.Suspense fallback={null}><Dashboard /></React.Suspense>} />
                     <Route path="/tasks" element={<MyTasks />} />
-                    <Route path="/calendar" element={<Calendar />} />
+                    <Route path="/calendar" element={<CalendarPage />} />
                     <Route path="/settings" element={<Settings handleLogout={handleLogout} />} />
                     <Route path="/profile" element={<Profile />} />
                   </Routes>

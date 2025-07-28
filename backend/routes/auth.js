@@ -19,11 +19,211 @@ async function sendVerificationEmail(user, verificationToken) {
     },
   });
   const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
+
+  const emailTemplate = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Verify Your Email - Task Manager</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f5f5f5;
+          line-height: 1.6;
+        }
+        .container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+          background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+          color: white;
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 28px;
+          font-weight: 600;
+        }
+        .header p {
+          margin: 10px 0 0 0;
+          font-size: 16px;
+          opacity: 0.9;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .welcome-text {
+          font-size: 18px;
+          color: #333333;
+          margin-bottom: 20px;
+        }
+        .message {
+          font-size: 16px;
+          color: #666666;
+          margin-bottom: 30px;
+          line-height: 1.6;
+        }
+        .verify-button {
+          display: inline-block;
+          background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+          color: white;
+          padding: 16px 32px;
+          text-decoration: none;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 16px;
+          text-align: center;
+          margin: 20px 0;
+          box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+          transition: all 0.3s ease;
+        }
+        .verify-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
+        }
+        .features {
+          background-color: #f8f9fa;
+          padding: 30px;
+          margin: 30px 0;
+          border-radius: 8px;
+        }
+        .features h3 {
+          color: #1976d2;
+          margin: 0 0 15px 0;
+          font-size: 18px;
+        }
+        .feature-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .feature-list li {
+          padding: 8px 0;
+          color: #666666;
+          position: relative;
+          padding-left: 25px;
+        }
+        .feature-list li:before {
+          content: '✓';
+          position: absolute;
+          left: 0;
+          color: #4caf50;
+          font-weight: bold;
+        }
+        .footer {
+          background-color: #f8f9fa;
+          padding: 30px;
+          text-align: center;
+          border-top: 1px solid #e0e0e0;
+        }
+        .footer p {
+          margin: 0;
+          color: #999999;
+          font-size: 14px;
+        }
+        .footer a {
+          color: #1976d2;
+          text-decoration: none;
+        }
+        .security-note {
+          background-color: #fff3cd;
+          border: 1px solid #ffeaa7;
+          border-radius: 6px;
+          padding: 15px;
+          margin: 20px 0;
+          font-size: 14px;
+          color: #856404;
+        }
+        @media (max-width: 600px) {
+          .container {
+            margin: 0;
+            box-shadow: none;
+          }
+          .header, .content, .footer {
+            padding: 20px;
+          }
+          .verify-button {
+            display: block;
+            text-align: center;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🎯 Task Manager</h1>
+          <p>Welcome to your productivity journey!</p>
+        </div>
+        
+        <div class="content">
+          <div class="welcome-text">
+            Hi ${user.name}! 👋
+          </div>
+          
+          <div class="message">
+            Thank you for joining <strong>Task Manager</strong>! We're excited to help you organize your tasks and boost your productivity.
+          </div>
+          
+          <div class="message">
+            To get started and secure your account, please verify your email address by clicking the button below:
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationUrl}" class="verify-button">
+              ✉️ Verify My Email Address
+            </a>
+          </div>
+          
+          <div class="features">
+            <h3>🚀 What you can do with Task Manager:</h3>
+            <ul class="feature-list">
+              <li>Create and organize tasks with priorities</li>
+              <li>Track your progress with beautiful analytics</li>
+              <li>Plan your schedule with the interactive calendar</li>
+              <li>Switch between light and dark themes</li>
+              <li>Access your tasks from any device</li>
+            </ul>
+          </div>
+          
+          <div class="security-note">
+            <strong>🔒 Security Note:</strong> This verification link will expire in 24 hours. If you didn't create an account with us, please ignore this email.
+          </div>
+          
+          <div class="message">
+            If the button above doesn't work, you can copy and paste this link into your browser:
+            <br><br>
+            <a href="${verificationUrl}" style="color: #1976d2; word-break: break-all;">${verificationUrl}</a>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p>
+            <strong>Task Manager Team</strong><br>
+            Making productivity simple and beautiful
+          </p>
+          <p style="margin-top: 15px;">
+            Need help? <a href="mailto:support@taskmanager.com">Contact our support team</a>
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+  
   await transporter.sendMail({
-    from: 'MyApp <no-reply@myapp.com>',
+    from: 'Task Manager <no-reply@taskmanager.com>',
     to: user.email,
-    subject: 'Verify your email',
-    html: `<p>Thank you for signing up! Please <a href="${verificationUrl}">click here to verify your email</a>.</p>`
+    subject: '🎯 Welcome to Task Manager - Verify Your Email',
+    html: emailTemplate
   });
 }
 
@@ -76,19 +276,53 @@ router.post('/signup', async (req, res) => {
 router.get('/verify-email', async (req, res) => {
   const { token, email } = req.query;
   if (!token || !email) {
-    return res.status(400).send('Invalid verification link.');
+    return res.redirect(`http://localhost:3000/verify-email?error=invalid_link`);
   }
   try {
     const user = await User.findOne({ where: { email, verificationToken: token } });
     if (!user) {
-      return res.status(400).send('Invalid or expired verification link.');
+      return res.redirect(`http://localhost:3000/verify-email?error=invalid_token&email=${encodeURIComponent(email)}`);
     }
     user.verified = true;
     user.verificationToken = null;
     await user.save();
-    res.send('Email verified! You can now log in.');
+    
+    // Direct redirect to frontend with success status
+    res.redirect(`http://localhost:3000/verify-email?verified=true&email=${encodeURIComponent(email)}`);
   } catch (error) {
-    res.status(500).send('Server error.');
+    res.redirect(`http://localhost:3000/verify-email?error=server_error&email=${encodeURIComponent(email)}`);
+  }
+});
+
+// Resend verification email route
+router.post('/resend-verification', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required.' });
+  }
+  
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+    
+    if (user.verified) {
+      return res.status(400).json({ success: false, message: 'Email is already verified.' });
+    }
+    
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    user.verificationToken = verificationToken;
+    await user.save();
+    
+    // Send verification email
+    await sendVerificationEmail(user, verificationToken);
+    
+    res.json({ success: true, message: 'Verification email sent successfully.' });
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
 
@@ -163,6 +397,73 @@ router.get('/me', async (req, res) => {
       // Add more fields as needed
     }
   });
+});
+
+// TEMPORARY: Cleanup duplicate tasks endpoint
+router.post('/cleanup-tasks', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email required' });
+    }
+
+    // Find user
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get current task count
+    const currentCount = await Task.count({ where: { userId: user.id } });
+    console.log(`Current tasks for ${email}: ${currentCount}`);
+
+    // Delete all existing tasks
+    await Task.destroy({ where: { userId: user.id } });
+    console.log('Deleted all existing tasks');
+
+    // Create 15 fresh tasks
+    const freshTasks = [
+      { title: 'Complete project proposal', description: 'Draft and finalize the Q1 project proposal', status: 'pending', priority: 'high', category: 'Work' },
+      { title: 'Review team performance', description: 'Monthly team review and feedback session', status: 'in-progress', priority: 'medium', category: 'Work' },
+      { title: 'Update website content', description: 'Refresh homepage and about page content', status: 'completed', priority: 'medium', category: 'Work' },
+      { title: 'Plan vacation trip', description: 'Research destinations and book flights', status: 'pending', priority: 'low', category: 'Personal' },
+      { title: 'Grocery shopping', description: 'Weekly grocery shopping for essentials', status: 'pending', priority: 'medium', category: 'Personal' },
+      { title: 'Learn React hooks', description: 'Complete advanced React hooks tutorial', status: 'in-progress', priority: 'high', category: 'Education' },
+      { title: 'Organize home office', description: 'Declutter and reorganize workspace', status: 'pending', priority: 'low', category: 'Personal' },
+      { title: 'Client meeting prep', description: 'Prepare presentation for client meeting', status: 'pending', priority: 'high', category: 'Work' },
+      { title: 'Exercise routine', description: 'Start morning workout routine', status: 'in-progress', priority: 'medium', category: 'Personal' },
+      { title: 'Read technical book', description: 'Finish reading Clean Code by Robert Martin', status: 'in-progress', priority: 'medium', category: 'Education' },
+      { title: 'Fix kitchen sink', description: 'Repair leaky kitchen faucet', status: 'pending', priority: 'high', category: 'Home' },
+      { title: 'Write blog post', description: 'Write article about React best practices', status: 'pending', priority: 'medium', category: 'Work' },
+      { title: 'Call dentist', description: 'Schedule dental cleaning appointment', status: 'completed', priority: 'medium', category: 'Personal' },
+      { title: 'Learn TypeScript', description: 'Complete TypeScript fundamentals course', status: 'pending', priority: 'medium', category: 'Education' },
+      { title: 'Plan weekend activities', description: 'Research fun weekend activities with family', status: 'pending', priority: 'low', category: 'Personal' }
+    ];
+
+    const createdTasks = [];
+    for (const taskData of freshTasks) {
+      const task = await Task.create({
+        ...taskData,
+        userId: user.id,
+        due_date: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000)
+      });
+      createdTasks.push(task);
+    }
+
+    const finalCount = await Task.count({ where: { userId: user.id } });
+
+    res.json({
+      message: 'Tasks cleaned up successfully',
+      deletedCount: currentCount,
+      createdCount: createdTasks.length,
+      finalCount: finalCount
+    });
+
+  } catch (error) {
+    console.error('Cleanup error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = router; 

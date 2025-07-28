@@ -65,12 +65,12 @@ const Signup = ({ setIsAuthenticated }) => {
       });
       const data = await res.json();
       if (data.success) {
-        setIsAuthenticated && setIsAuthenticated(true);
-        // Store user email in localStorage for profile page
+        // Store user email in localStorage for verification page
         if (formData.email) {
           localStorage.setItem('userEmail', formData.email);
         }
-        navigate('/');
+        // Redirect to verification page instead of dashboard
+        navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
       } else {
         setErrors({ api: data.message || 'Signup failed' });
       }
