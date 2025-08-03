@@ -1,5 +1,5 @@
 // src/pages/Calendar.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -19,9 +19,10 @@ import {
   IconButton
 } from "@mui/material";
 import { Close as CloseIcon, Delete as DeleteIcon } from "@mui/icons-material";
-
+import { useTasks } from '../hooks/useTasks';
 
 const CalendarPage = () => {
+  const { tasks, createTask, loading } = useTasks();
   const [events, setEvents] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -34,48 +35,91 @@ const CalendarPage = () => {
   });
   const theme = useTheme();
 
+  // Convert tasks to calendar events
+  useEffect(() => {
+    if (tasks && tasks.length > 0) {
+      const calendarEvents = tasks.map(task => {
+        // Create event start datetime
+        let eventStart = task.due_date;
+        let isAllDay = true;
+        
+        if (task.due_time) {
+          // Combine date and time for timed events
+          const taskDate = new Date(task.due_date);
+          const [hours, minutes] = task.due_time.split(':');
+          taskDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          eventStart = taskDate.toISOString();
+          isAllDay = false;
+        }
+        
+        return {
+          id: task.id.toString(),
+          title: task.due_time ? 
+            `${task.title} (${task.due_time})` : 
+            task.title,
+          start: eventStart,
+          allDay: isAllDay,
+          extendedProps: {
+            description: task.description,
+            priority: task.priority,
+            status: task.status,
+            due_time: task.due_time,
+            taskId: task.id
+          },
+          backgroundColor: getPriorityColor(task.priority),
+          borderColor: getPriorityColor(task.priority),
+          textColor: '#ffffff',
+          // Add status styling
+          className: task.status === 'completed' ? 'completed-task' : ''
+        };
+      });
+      
+      setEvents(calendarEvents);
+    }
+  }, [tasks]);
+
   const handleDateClick = (info) => {
     setSelectedDate(info.dateStr);
     setDialogOpen(true);
   };
 
   const handleEventClick = (info) => {
-    const confirmDelete = window.confirm(`Delete task: "${info.event.title}"?`);
-    if (confirmDelete) {
-      setEvents(events.filter(event => event.id !== info.event.id));
-    }
+    const task = info.event.extendedProps;
+    const taskTitle = info.event.title.replace(/ \(\d{2}:\d{2}\)$/, ''); // Remove time from title
+    
+    const message = `Task: ${taskTitle}\n` +
+                   `Description: ${task.description || 'No description'}\n` +
+                   `Priority: ${task.priority}\n` +
+                   `Status: ${task.status}\n` +
+                   `Due: ${task.due_time ? `${info.event.start.toDateString()} at ${task.due_time}` : info.event.start.toDateString()}`;
+    
+    alert(message);
   };
 
   const handleFormChange = (field, value) => {
     setTaskForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleCreateTask = () => {
+  const handleCreateTask = async () => {
     if (taskForm.title.trim()) {
-      // Create event with time support
-      const eventStart = taskForm.due_time ? 
-        `${selectedDate}T${taskForm.due_time}` : 
-        selectedDate;
-      
-      const newEvent = {
-        id: Date.now().toString(),
-        title: taskForm.due_time ? 
-          `${taskForm.title} (${taskForm.due_time})` : 
-          taskForm.title,
-        start: eventStart,
-        allDay: !taskForm.due_time, // If time is specified, it's not all-day
-        extendedProps: {
+      try {
+        // Create task using the real API
+        const taskData = {
+          title: taskForm.title,
           description: taskForm.description,
           priority: taskForm.priority,
           status: taskForm.status,
-          due_time: taskForm.due_time
-        },
-        backgroundColor: getPriorityColor(taskForm.priority),
-        borderColor: getPriorityColor(taskForm.priority),
-        textColor: '#ffffff'
-      };
-      setEvents([...events, newEvent]);
-      handleCloseDialog();
+          due_date: selectedDate,
+          due_time: taskForm.due_time || null
+        };
+        
+        await createTask(taskData);
+        handleCloseDialog();
+        // Events will be updated automatically via useEffect when tasks change
+      } catch (error) {
+        console.error('Error creating task:', error);
+        alert('Failed to create task. Please try again.');
+      }
     }
   };
 
@@ -185,6 +229,13 @@ const CalendarPage = () => {
           borderRadius: '0 0 12px 12px',
           overflow: 'hidden',
           boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        },
+        '& .completed-task': {
+          opacity: 0.6,
+          textDecoration: 'line-through',
+          '& .fc-event-title': {
+            textDecoration: 'line-through',
+          }
         }
       }}
     >
