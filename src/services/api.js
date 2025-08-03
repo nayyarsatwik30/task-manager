@@ -25,7 +25,8 @@ async function fetchWithHandling(url, options = {}) {
 export const taskAPI = {
   // Get all tasks
   getAllTasks: async () => {
-    return fetchWithHandling(`${API_BASE_URL}/tasks`);
+    const userEmail = localStorage.getItem('userEmail');
+    return fetchWithHandling(`${API_BASE_URL}/tasks?userEmail=${encodeURIComponent(userEmail)}`);
   },
 
   // Get task by ID
@@ -51,7 +52,8 @@ export const taskAPI = {
 
   // Delete task
   deleteTask: async (id) => {
-    return fetchWithHandling(`${API_BASE_URL}/tasks/${id}`, {
+    const userEmail = localStorage.getItem('userEmail');
+    return fetchWithHandling(`${API_BASE_URL}/tasks/${id}?userEmail=${encodeURIComponent(userEmail)}`, {
       method: 'DELETE'
     });
   },

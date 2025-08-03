@@ -45,12 +45,11 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
     // If verification is already confirmed from backend
     if (verified === 'true' && userEmail) {
       setStatus('success');
-      setMessage('Email verified successfully! Redirecting to dashboard...');
+      setMessage('Email verified successfully! Redirecting to login page...');
       
-      // Set authentication and redirect after a short delay
+      // Redirect to login page after a short delay
       setTimeout(() => {
-        setIsAuthenticated(true);
-        navigate('/');
+        navigate('/login');
       }, 2000);
     }
     // If we have a token in the URL, this is a verification link click
@@ -68,12 +67,11 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
       
       if (response.ok) {
         setStatus('success');
-        setMessage('Email verified successfully! Redirecting to dashboard...');
+        setMessage('Email verified successfully! Redirecting to login page...');
         
-        // Set authentication and redirect after a short delay
+        // Redirect to login page after a short delay
         setTimeout(() => {
-          setIsAuthenticated(true);
-          navigate('/');
+          navigate('/login');
         }, 2000);
       } else {
         setStatus('error');
@@ -134,6 +132,9 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               {message}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              You can now log in to your account.
             </Typography>
             <CircularProgress size={24} />
           </Box>

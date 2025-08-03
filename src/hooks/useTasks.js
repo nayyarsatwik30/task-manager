@@ -26,7 +26,17 @@ export const useTasks = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await taskAPI.createTask(taskData);
+      // Get user email from localStorage
+      const userEmail = localStorage.getItem('userEmail');
+      
+      // Include user email in task data for email notification
+      const taskDataWithEmail = {
+        ...taskData,
+        userEmail: userEmail,
+        emailNotifications: localStorage.getItem('emailNotifications') !== 'false'
+      };
+      
+      const response = await taskAPI.createTask(taskDataWithEmail);
       setTasks(prev => [response.data, ...prev]);
       return response.data;
     } catch (err) {
@@ -43,7 +53,17 @@ export const useTasks = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await taskAPI.updateTask(id, taskData);
+      // Get user email from localStorage
+      const userEmail = localStorage.getItem('userEmail');
+      
+      // Include user email in task data for email notification
+      const taskDataWithEmail = {
+        ...taskData,
+        userEmail: userEmail,
+        emailNotifications: localStorage.getItem('emailNotifications') !== 'false'
+      };
+      
+      const response = await taskAPI.updateTask(id, taskDataWithEmail);
       setTasks(prev => prev.map(task => 
         task.id === id ? response.data : task
       ));

@@ -5,6 +5,7 @@ import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
 import MainLayout from './layout/MainLayout';
 import { ThemeProvider } from './context/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import MyTasks from './pages/MyTasks';
 import { Box, Typography } from '@mui/material';
 import Profile from './pages/Profile';
@@ -21,7 +22,8 @@ function App() {
 
   return (
     <ThemeProvider>
-      <BrowserRouter>
+      <NotificationProvider>
+        <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
@@ -46,7 +48,8 @@ function App() {
             }
           />
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+      </NotificationProvider>
     </ThemeProvider>
   );
 }

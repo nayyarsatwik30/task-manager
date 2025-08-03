@@ -6,7 +6,9 @@ require('dotenv').config({ path: './config.env' });
 
 const tasksRoutes = require('./routes/tasks');
 const authRoutes = require('./routes/auth');
+const preferencesRoutes = require('./routes/preferences');
 const { syncModels } = require('./models');
+const { startReminderService } = require('./utils/reminderService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +46,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/preferences', preferencesRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -76,6 +79,9 @@ const startServer = async () => {
       console.log(` Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(` API Base URL: http://localhost:${PORT}/api`);
       console.log(` Health Check: http://localhost:${PORT}/health`);
+      
+      // Start the reminder service
+      startReminderService();
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

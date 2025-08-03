@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Paper, Grid, Divider, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, Button, Dialog, DialogTitle, DialogContent, DialogActions, Accordion, AccordionSummary, AccordionDetails, Alert
 } from '@mui/material';
@@ -16,11 +16,44 @@ const Settings = ({ handleLogout }) => {
   const [weeklySummary, setWeeklySummary] = useState(false);
   const [twoFA, setTwoFA] = useState(false);
   const [loginAlerts, setLoginAlerts] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(() => {
+    const saved = localStorage.getItem('emailNotifications');
+    return saved === null ? true : saved === 'true';
+  });
+  const [reminderNotifications, setReminderNotifications] = useState(true);
+  const [reminderTime, setReminderTime] = useState('30');
+  const [loading, setLoading] = useState(true);
   const [sessionTimeout, setSessionTimeout] = useState(30);
   const [clearDialog, setClearDialog] = useState(false);
   const [deactivateDialog, setDeactivateDialog] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [logoutDialog, setLogoutDialog] = useState(false);
+
+  // Load user preferences from API
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const userEmail = localStorage.getItem('userEmail');
+        if (!userEmail) return;
+
+        const response = await fetch(`http://localhost:5000/api/preferences/${encodeURIComponent(userEmail)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.preferences) {
+            setEmailNotifications(data.preferences.emailNotifications);
+            setReminderNotifications(data.preferences.reminderNotifications);
+            setReminderTime(data.preferences.reminderTime.toString());
+          }
+        }
+      } catch (error) {
+        console.error('Error loading preferences:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPreferences();
+  }, []);
 
   return (
     <Box sx={{ p: { xs: 1, md: 4 } }}>
@@ -64,6 +97,64 @@ const Settings = ({ handleLogout }) => {
             control={<Switch checked={weeklySummary} onChange={e => setWeeklySummary(e.target.checked)} />}
             label="Weekly Summary Emails"
           />
+          <FormControlLabel
+            control={<Switch checked={emailNotifications} onChange={async (e) => {
+              setEmailNotifications(e.target.checked);
+              try {
+                const userEmail = localStorage.getItem('userEmail');
+                await fetch(`http://localhost:5000/api/preferences/${encodeURIComponent(userEmail)}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ emailNotifications: e.target.checked })
+                });
+              } catch (error) {
+                console.error('Error updating preferences:', error);
+              }
+            }} />}
+            label="Task Creation & Completion Email Notifications"
+          />
+          <FormControlLabel
+            control={<Switch checked={reminderNotifications} onChange={async (e) => {
+              setReminderNotifications(e.target.checked);
+              try {
+                const userEmail = localStorage.getItem('userEmail');
+                await fetch(`http://localhost:5000/api/preferences/${encodeURIComponent(userEmail)}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ reminderNotifications: e.target.checked })
+                });
+              } catch (error) {
+                console.error('Error updating preferences:', error);
+              }
+            }} />}
+            label="Task Reminder Notifications"
+          />
+          <FormControl fullWidth sx={{ mt: 2, maxWidth: 300 }}>
+            <InputLabel>Reminder Time (minutes before due)</InputLabel>
+            <Select 
+              value={reminderTime} 
+              onChange={async (e) => {
+                setReminderTime(e.target.value);
+                try {
+                  const userEmail = localStorage.getItem('userEmail');
+                  await fetch(`http://localhost:5000/api/preferences/${encodeURIComponent(userEmail)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reminderTime: parseInt(e.target.value) })
+                  });
+                } catch (error) {
+                  console.error('Error updating preferences:', error);
+                }
+              }} 
+              label="Reminder Time"
+              disabled={!reminderNotifications}
+            >
+              <MenuItem value="5">5 minutes</MenuItem>
+              <MenuItem value="15">15 minutes</MenuItem>
+              <MenuItem value="30">30 minutes</MenuItem>
+              <MenuItem value="60">1 hour</MenuItem>
+            </Select>
+          </FormControl>
         </AccordionDetails>
       </Accordion>
       <Accordion defaultExpanded>

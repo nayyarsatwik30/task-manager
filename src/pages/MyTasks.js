@@ -98,6 +98,8 @@ const MyTasks = () => {
         setSnackbar({ open: true, message: 'Task created successfully!', severity: 'success' });
       }
       setAddTaskTitle('');
+      setFormOpen(false); // Close the modal after successful submission
+      setEditingTask(null); // Reset editing state
     } catch (error) {
       setSnackbar({ open: true, message: error.message, severity: 'error' });
     }

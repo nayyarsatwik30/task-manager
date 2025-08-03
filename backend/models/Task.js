@@ -27,6 +27,14 @@ const Task = sequelize.define('Task', {
     type: DataTypes.DATE,
     allowNull: true,
   },
+  user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id'
+    }
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
