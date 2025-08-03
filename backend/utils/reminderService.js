@@ -45,7 +45,8 @@ async function sendReminderEmail(userEmail, taskData, timeLeft) {
               </span>
             </div>
             <div style="margin-bottom: 15px;">
-              <strong style="color: #2d3436;">Due Date:</strong> ${new Date(taskData.dueDate).toLocaleString()}
+              <strong style="color: #2d3436;">Due Date:</strong> ${new Date(taskData.dueDate).toLocaleDateString()}
+              ${taskData.due_time ? ` at <strong>${taskData.due_time}</strong>` : ''}
             </div>
             <div style="margin-bottom: 15px;">
               <strong style="color: #e74c3c;">Time Left:</strong> ${timeLeft}
@@ -108,16 +109,20 @@ async function sendReminderEmail(userEmail, taskData, timeLeft) {
 async function checkTaskReminders() {
   try {
     const now = new Date();
-    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
     
-    // Find tasks that are due within the next hour and not completed
-    const tasksNeedingReminders = await Task.findAll({
+    console.log(`🔍 Checking for reminders at ${now.toLocaleString()}`);
+    
+    // Find all tasks due today (regardless of time) that are not completed
+    const tasksToday = await Task.findAll({
       where: {
         status: {
           [require('sequelize').Op.ne]: 'completed'
         },
-        dueDate: {
-          [require('sequelize').Op.between]: [now, oneHourFromNow]
+        due_date: {
+          [require('sequelize').Op.gte]: today,
+          [require('sequelize').Op.lt]: tomorrow
         }
       },
       include: [{
@@ -125,22 +130,43 @@ async function checkTaskReminders() {
         attributes: ['email', 'name']
       }]
     });
-
-    for (const task of tasksNeedingReminders) {
-      const timeUntilDue = task.dueDate - now;
+    
+    console.log(`📋 Found ${tasksToday.length} tasks due today`);
+    
+    // Filter tasks that need reminders based on combined due_date + due_time
+    for (const task of tasksToday) {
+      console.log(`\n📝 Processing task: "${task.title}" for user: ${task.User.email}`);
+      
+      // Create precise due datetime by combining due_date and due_time
+      let taskDueDateTime = new Date(task.due_date);
+      
+      if (task.due_time) {
+        const [hours, minutes] = task.due_time.split(':');
+        taskDueDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        console.log(`⏰ Task has specific time: ${task.due_time}`);
+      }
+      
+      console.log(`📅 Task due: ${taskDueDateTime.toLocaleString()}`);
+      
+      const timeUntilDue = taskDueDateTime - now;
       const minutesUntilDue = Math.floor(timeUntilDue / (1000 * 60));
+      
+      console.log(`⏳ Minutes until due: ${minutesUntilDue}`);
       
       // Get user preferences from database
       const userPreference = await UserPreference.findOne({
-        where: { user_id: task.User.id }
+        where: { user_id: task.user_id }
       });
       
       // Use default values if no preferences found
       const userReminderTime = userPreference ? userPreference.reminderTime : 30;
       const userReminderEnabled = userPreference ? userPreference.reminderNotifications : true;
       
+      console.log(`🔔 User reminder settings: enabled=${userReminderEnabled}, time=${userReminderTime} minutes`);
+      
       // Send reminder if task is due within user's preferred time and reminders are enabled
       if (minutesUntilDue <= userReminderTime && minutesUntilDue > 0 && userReminderEnabled) {
+        console.log(`✅ SENDING REMINDER for task: "${task.title}" to ${task.User.email}`);
         const timeLeft = minutesUntilDue <= 1 ? 
           `${minutesUntilDue} minute` : 
           `${minutesUntilDue} minutes`;
@@ -150,11 +176,21 @@ async function checkTaskReminders() {
           {
             title: task.title,
             priority: task.priority,
-            dueDate: task.dueDate,
+            dueDate: task.due_date,
+            due_time: task.due_time,
             description: task.description
           },
           timeLeft
         );
+      } else {
+        console.log(`❌ NOT sending reminder for task: "${task.title}"`);
+        if (minutesUntilDue <= 0) {
+          console.log(`   Reason: Task is overdue (${minutesUntilDue} minutes)`);
+        } else if (minutesUntilDue > userReminderTime) {
+          console.log(`   Reason: Too early (${minutesUntilDue} > ${userReminderTime} minutes)`);
+        } else if (!userReminderEnabled) {
+          console.log(`   Reason: User has disabled reminder notifications`);
+        }
       }
     }
   } catch (error) {

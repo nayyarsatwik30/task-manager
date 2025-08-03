@@ -27,6 +27,13 @@ const Task = sequelize.define('Task', {
     type: DataTypes.DATE,
     allowNull: true,
   },
+  due_time: {
+    type: DataTypes.STRING(5), // Format: "HH:MM"
+    allowNull: true,
+    validate: {
+      is: /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/ // Validates HH:MM format (24-hour)
+    }
+  },
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,

@@ -23,7 +23,8 @@ const TaskForm = ({ open, onClose, onSubmit, initialData, mode }) => {
     description: '',
     status: 'pending',
     priority: 'medium',
-    due_date: ''
+    due_date: '',
+    due_time: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -35,7 +36,8 @@ const TaskForm = ({ open, onClose, onSubmit, initialData, mode }) => {
         description: initialData.description || '',
         status: initialData.status || 'pending',
         priority: initialData.priority || 'medium',
-        due_date: initialData.due_date || ''
+        due_date: initialData.due_date || '',
+        due_time: initialData.due_time || ''
       });
     } else {
       setFormData({
@@ -43,7 +45,8 @@ const TaskForm = ({ open, onClose, onSubmit, initialData, mode }) => {
         description: '',
         status: 'pending',
         priority: 'medium',
-        due_date: ''
+        due_date: '',
+        due_time: ''
       });
     }
     setErrors({});
@@ -90,7 +93,8 @@ const TaskForm = ({ open, onClose, onSubmit, initialData, mode }) => {
       ...formData,
       title: formData.title.trim(),
       description: formData.description.trim() || null,
-      due_date: formData.due_date || null
+      due_date: formData.due_date || null,
+      due_time: formData.due_time || null
     };
     
     onSubmit(submitData);
@@ -102,7 +106,8 @@ const TaskForm = ({ open, onClose, onSubmit, initialData, mode }) => {
       description: '',
       status: 'pending',
       priority: 'medium',
-      due_date: ''
+      due_date: '',
+      due_time: ''
     });
     setErrors({});
     onClose();
@@ -196,23 +201,41 @@ const TaskForm = ({ open, onClose, onSubmit, initialData, mode }) => {
               </FormControl>
             </Box>
             
-            {/* Due Date Field */}
-            <TextField
-              label="Due Date"
-              type="date"
-              value={formData.due_date}
-              onChange={handleChange('due_date')}
-              error={!!errors.due_date}
-              helperText={errors.due_date}
-              fullWidth
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2
-                }
-              }}
-            />
+            {/* Due Date and Time Row */}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                label="Due Date"
+                type="date"
+                value={formData.due_date}
+                onChange={handleChange('due_date')}
+                error={!!errors.due_date}
+                helperText={errors.due_date}
+                fullWidth
+                variant="outlined"
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2
+                  }
+                }}
+              />
+              
+              <TextField
+                label="Due Time"
+                type="time"
+                value={formData.due_time}
+                onChange={handleChange('due_time')}
+                fullWidth
+                variant="outlined"
+                InputLabelProps={{ shrink: true }}
+                helperText="Optional - specify time for precise scheduling"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2
+                  }
+                }}
+              />
+            </Box>
           </Box>
         </DialogContent>
         

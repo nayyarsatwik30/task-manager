@@ -11,28 +11,7 @@ import dayjs from 'dayjs';
 import { Tooltip as MuiTooltip } from '@mui/material';
 import { useTheme } from '@mui/material';
 
-const lineData = [
-  { day: 'Mon', completed: 2 },
-  { day: 'Tue', completed: 4 },
-  { day: 'Wed', completed: 3 },
-  { day: 'Thu', completed: 5 },
-  { day: 'Fri', completed: 6 },
-  { day: 'Sat', completed: 4 },
-  { day: 'Sun', completed: 4 },
-];
 
-const pieData = [
-  { name: 'High', value: 10, color: '#e53935' },
-  { name: 'Medium', value: 20, color: '#fbc02d' },
-  { name: 'Low', value: 12, color: '#43a047' },
-];
-
-const barData = [
-  { category: 'Work', tasks: 12 },
-  { category: 'Personal', tasks: 8 },
-  { category: 'Shopping', tasks: 6 },
-  { category: 'Others', tasks: 16 },
-];
 
 // Custom tooltip for charts
 const CustomTooltip = ({ active, payload, label }) => {
@@ -54,6 +33,11 @@ const CustomTooltip = ({ active, payload, label }) => {
 const Dashboard = () => {
   const { tasks, loading } = useTasks();
   const [analytics, setAnalytics] = useState([]);
+  const [chartData, setChartData] = useState({
+    lineData: [],
+    pieData: [],
+    barData: []
+  });
   const theme = useTheme();
 
   useEffect(() => {
@@ -69,43 +53,85 @@ const Dashboard = () => {
 
       const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+      // Calculate priority distribution for pie chart
+      const highPriorityTasks = tasks.filter(task => task.priority === 'high').length;
+      const mediumPriorityTasks = tasks.filter(task => task.priority === 'medium').length;
+      const lowPriorityTasks = tasks.filter(task => task.priority === 'low').length;
+
+      // Calculate task completion over last 7 days
+      const last7Days = [];
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = dayjs().subtract(i, 'day');
+        const dayTasks = tasks.filter(task => 
+          task.status === 'completed' && 
+          task.updated_at && 
+          dayjs(task.updated_at).isSame(date, 'day')
+        ).length;
+        
+        last7Days.push({
+          day: dayNames[date.day()],
+          completed: dayTasks
+        });
+      }
+
+      // Calculate status distribution for bar chart
+      const statusData = [
+        { category: 'Pending', tasks: pendingTasks },
+        { category: 'In Progress', tasks: inProgressTasks },
+        { category: 'Completed', tasks: completedTasks },
+        { category: 'Due Today', tasks: dueToday }
+      ];
+
       setAnalytics([
-        { 
-          label: 'Total Tasks', 
-          value: totalTasks, 
-          icon: <AssignmentTurnedInIcon color="primary" />, 
-          color: 'primary.main' 
+        {
+          label: 'Total Tasks',
+          value: totalTasks,
+          icon: <AssignmentTurnedInIcon color="primary" />,
+          color: 'primary.main'
         },
-        { 
-          label: 'Tasks Completed', 
-          value: completedTasks, 
-          icon: <CheckCircleIcon color="success" />, 
-          color: 'success.main', 
-          progress: completionRate 
+        {
+          label: 'Tasks Completed',
+          value: completedTasks,
+          icon: <CheckCircleIcon color="success" />,
+          color: 'success.main',
+          progress: completionRate
         },
-        { 
-          label: 'Pending Tasks', 
-          value: pendingTasks, 
-          icon: <PendingActionsIcon color="warning" />, 
-          color: 'warning.main' 
+        {
+          label: 'Pending Tasks',
+          value: pendingTasks,
+          icon: <PendingActionsIcon color="warning" />,
+          color: 'warning.main'
         },
-        { 
-          label: 'Tasks Due Today', 
-          value: dueToday, 
-          icon: <CalendarTodayIcon color="secondary" />, 
-          color: 'secondary.main' 
+        {
+          label: 'Tasks Due Today',
+          value: dueToday,
+          icon: <CalendarTodayIcon color="secondary" />,
+          color: 'secondary.main'
         },
       ]);
+
+      // Set real chart data
+      setChartData({
+        lineData: last7Days,
+        pieData: [
+          { name: 'High', value: highPriorityTasks, color: '#e53935' },
+          { name: 'Medium', value: mediumPriorityTasks, color: '#fbc02d' },
+          { name: 'Low', value: lowPriorityTasks, color: '#43a047' }
+        ].filter(item => item.value > 0), // Only show priorities that have tasks
+        barData: statusData.filter(item => item.tasks > 0) // Only show statuses that have tasks
+      });
     }
   }, [tasks]);
 
   if (loading) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '50vh' 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '50vh'
       }}>
         <CircularProgress size={60} />
       </Box>
@@ -113,16 +139,16 @@ const Dashboard = () => {
   }
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
+    <Box sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
       minHeight: '100%',
       py: 2,
       bgcolor: theme => theme.palette.mode === 'dark' ? '#181a20' : '#f4f6fa',
     }}>
-      <Container maxWidth="xl" sx={{ 
-        display: 'flex', 
+      <Container maxWidth="xl" sx={{
+        display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         width: '100%'
@@ -150,10 +176,10 @@ const Dashboard = () => {
           }}>
             {analytics.map((item, idx) => (
               <Box key={item.label} sx={{ flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                <Card 
+                <Card
                   elevation={theme.palette.mode === 'dark' ? 5 : 8}
-                  sx={{ 
-                    display: 'flex', 
+                  sx={{
+                    display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -179,17 +205,17 @@ const Dashboard = () => {
                   <Typography variant="h5" fontWeight={800} color="primary" align="center" sx={{ mb: 0.5 }}>{item.value}</Typography>
                   {item.progress !== undefined && (
                     <Box mt={0.5} sx={{ width: '100%' }}>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={item.progress} 
-                        sx={{ 
-                          height: 6, 
+                      <LinearProgress
+                        variant="determinate"
+                        value={item.progress}
+                        sx={{
+                          height: 6,
                           borderRadius: 4,
                           bgcolor: 'rgba(25, 118, 210, 0.1)',
                           '& .MuiLinearProgress-bar': {
                             borderRadius: 4,
                           }
-                        }} 
+                        }}
                       />
                       <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', textAlign: 'center', fontSize: 11 }}>
                         {item.progress}% completed
@@ -197,11 +223,11 @@ const Dashboard = () => {
                     </Box>
                   )}
                   {item.label === 'Pending Tasks' && (
-                    <Chip 
-                      label="In Progress" 
-                      color="warning" 
-                      size="small" 
-                      sx={{ mt: 1, fontWeight: 600, fontSize: 11 }} 
+                    <Chip
+                      label="In Progress"
+                      color="warning"
+                      size="small"
+                      sx={{ mt: 1, fontWeight: 600, fontSize: 11 }}
                     />
                   )}
                 </Card>
@@ -211,16 +237,16 @@ const Dashboard = () => {
         </Box>
         {/* Charts Section */}
         <Grid container spacing={3} sx={{ width: '100%', justifyContent: 'center' }}>
-          <Grid item xs={12} md={6} lg={4} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Card 
-              elevation={4} 
-              sx={{ 
-                p: 3, 
+          <Grid item xs={12} md={6} lg={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Card
+              elevation={4}
+              sx={{
+                p: 3,
                 height: '100%',
                 borderRadius: 4,
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 width: '100%',
-                maxWidth: 420,
+
                 bgcolor: 'background.paper',
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.02)',
@@ -233,14 +259,14 @@ const Dashboard = () => {
                 Task Completion (7 days)
               </Typography>
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={lineData}>
+                <LineChart data={chartData.lineData}>
                   <XAxis dataKey="day" />
                   <YAxis allowDecimals={false} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="completed" 
-                    stroke="#1976d2" 
-                    strokeWidth={3} 
+                  <Line
+                    type="monotone"
+                    dataKey="completed"
+                    stroke="#1976d2"
+                    strokeWidth={3}
                     dot={{ r: 7, fill: '#1976d2', stroke: '#fff', strokeWidth: 2 }}
                     activeDot={{ r: 10, stroke: '#1976d2', strokeWidth: 3, fill: '#fff' }}
                   />
@@ -249,17 +275,17 @@ const Dashboard = () => {
               </ResponsiveContainer>
             </Card>
           </Grid>
-          
-          <Grid item xs={12} md={6} lg={4} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Card 
-              elevation={4} 
-              sx={{ 
-                p: 3, 
+
+          <Grid item xs={12} md={6} lg={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Card
+              elevation={4}
+              sx={{
+                p: 3,
                 height: '100%',
                 borderRadius: 4,
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 width: '100%',
-                maxWidth: 420,
+
                 bgcolor: 'background.paper',
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.02)',
@@ -273,16 +299,16 @@ const Dashboard = () => {
               </Typography>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
-                  <Pie 
-                    data={pieData} 
-                    dataKey="value" 
-                    nameKey="name" 
-                    cx="50%" 
-                    cy="50%" 
-                    outerRadius={90} 
+                  <Pie
+                    data={chartData.pieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="45%"
+                    outerRadius={80}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {pieData.map((entry, idx) => (
+                    {chartData.pieData.map((entry, idx) => (
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
@@ -291,17 +317,17 @@ const Dashboard = () => {
               </ResponsiveContainer>
             </Card>
           </Grid>
-          
-          <Grid item xs={12} md={12} lg={4} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Card 
-              elevation={4} 
-              sx={{ 
-                p: 3, 
+
+          <Grid item xs={12} md={12} lg={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Card
+              elevation={4}
+              sx={{
+                p: 3,
                 height: '100%',
                 borderRadius: 4,
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 width: '100%',
-                maxWidth: 420,
+
                 bgcolor: 'background.paper',
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.02)',
@@ -311,15 +337,15 @@ const Dashboard = () => {
               }}
             >
               <Typography variant="h6" fontWeight={600} mb={3} color="primary">
-                Tasks by Category
+                Tasks by Status
               </Typography>
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={barData}>
+                <BarChart data={chartData.barData}>
                   <XAxis dataKey="category" />
                   <YAxis allowDecimals={false} />
-                  <Bar 
-                    dataKey="tasks" 
-                    fill="#9c27b0" 
+                  <Bar
+                    dataKey="tasks"
+                    fill="#9c27b0"
                     radius={[12, 12, 0, 0]}
                     barSize={44}
                   />

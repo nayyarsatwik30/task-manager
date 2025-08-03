@@ -29,7 +29,8 @@ const CalendarPage = () => {
     title: '',
     description: '',
     priority: 'medium',
-    status: 'pending'
+    status: 'pending',
+    due_time: ''
   });
   const theme = useTheme();
 
@@ -51,15 +52,23 @@ const CalendarPage = () => {
 
   const handleCreateTask = () => {
     if (taskForm.title.trim()) {
+      // Create event with time support
+      const eventStart = taskForm.due_time ? 
+        `${selectedDate}T${taskForm.due_time}` : 
+        selectedDate;
+      
       const newEvent = {
         id: Date.now().toString(),
-        title: taskForm.title,
-        start: selectedDate,
-        allDay: true,
+        title: taskForm.due_time ? 
+          `${taskForm.title} (${taskForm.due_time})` : 
+          taskForm.title,
+        start: eventStart,
+        allDay: !taskForm.due_time, // If time is specified, it's not all-day
         extendedProps: {
           description: taskForm.description,
           priority: taskForm.priority,
-          status: taskForm.status
+          status: taskForm.status,
+          due_time: taskForm.due_time
         },
         backgroundColor: getPriorityColor(taskForm.priority),
         borderColor: getPriorityColor(taskForm.priority),
@@ -72,7 +81,7 @@ const CalendarPage = () => {
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
-    setTaskForm({ title: '', description: '', priority: 'medium', status: 'pending' });
+    setTaskForm({ title: '', description: '', priority: 'medium', status: 'pending', due_time: '' });
   };
 
   const getPriorityColor = (priority) => {

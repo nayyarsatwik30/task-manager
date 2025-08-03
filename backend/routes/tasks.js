@@ -475,7 +475,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/tasks - Create new task
 router.post('/', async (req, res) => {
   try {
-    const { title, description, status, priority, due_date, userEmail } = req.body;
+    const { title, description, status, priority, due_date, due_time, userEmail } = req.body;
     if (!title || title.trim() === '') {
       return res.status(400).json({
         success: false,
@@ -507,6 +507,7 @@ router.post('/', async (req, res) => {
       status: status || 'pending',
       priority: priority || 'medium',
       due_date: due_date || null,
+      due_time: due_time || null,
       user_id: user.id
     });
 
@@ -540,7 +541,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, status, priority, due_date, userEmail } = req.body;
+    const { title, description, status, priority, due_date, due_time, userEmail } = req.body;
     
     if (!userEmail) {
       return res.status(400).json({
@@ -582,7 +583,8 @@ router.put('/:id', async (req, res) => {
       description: description !== undefined ? description : task.description,
       status: status !== undefined ? status : task.status,
       priority: priority !== undefined ? priority : task.priority,
-      due_date: due_date !== undefined ? due_date : task.due_date
+      due_date: due_date !== undefined ? due_date : task.due_date,
+      due_time: due_time !== undefined ? due_time : task.due_time
     });
 
     // Send email notification for status changes to completed
