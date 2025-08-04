@@ -62,7 +62,7 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
       <Toolbar sx={{ minHeight: HEADER_HEIGHT, height: HEADER_HEIGHT, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
         {/* Left side: App name */}
         <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 700, fontSize: '1.2rem', letterSpacing: 1 }}>
-          MyApp
+          Task Manager
         </Typography>
         {/* Right side: theme toggle, avatar, menu */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>

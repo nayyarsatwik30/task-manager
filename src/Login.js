@@ -86,7 +86,7 @@ const Login = ({ setIsAuthenticated }) => {
           }}>
             <Box sx={{ width: '100%', p: 4 }}>
               <Typography variant="h4" fontWeight={700} gutterBottom align="center" color="primary" mb={1}>
-                Welcome to MyApp
+                Welcome to Task Manager
               </Typography>
               <Typography variant="body2" color="text.secondary" align="center" mb={4}>
                 Sign in to your account to continue

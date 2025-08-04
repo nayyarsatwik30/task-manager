@@ -119,7 +119,7 @@ const Signup = ({ setIsAuthenticated }) => {
                 Create Account
               </Typography>
             <Typography variant="body2" color="text.secondary" align="center" mb={4}>
-              Join MyApp and start managing your tasks efficiently
+              Join Task Manager and start managing your tasks efficiently
             </Typography>
             
             <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>

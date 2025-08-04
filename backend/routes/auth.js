@@ -218,7 +218,7 @@ async function sendVerificationEmail(user, verificationToken) {
     </body>
     </html>
   `;
-  
+
   await transporter.sendMail({
     from: 'Task Manager <no-reply@taskmanager.com>',
     to: user.email,
@@ -271,7 +271,7 @@ async function createStarterTasksForUser(user) {
       user_id: user.id
     }
   ];
-  
+
   try {
     await Task.bulkCreate(starterTasks);
     console.log(`Created ${starterTasks.length} starter tasks for user: ${user.email}`);
@@ -297,12 +297,17 @@ router.post('/signup', async (req, res) => {
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
     // Insert user (unverified)
-    const newUser = await User.create({ name, email, password: hashedPassword, verified: false, verificationToken });
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      verificationToken,
+    });
     // Add starter tasks
-    await createStarterTasksForUser(newUser);
+    await createStarterTasksForUser(user);
     // Send verification email
-    await sendVerificationEmail(newUser, verificationToken);
-    res.json({ success: true, message: 'User registered successfully. Please check your email to verify your account.', userId: newUser.id });
+    await sendVerificationEmail(user, verificationToken);
+    res.json({ success: true, message: 'User registered successfully. Please check your email to verify your account.', userId: user.id });
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
@@ -323,7 +328,7 @@ router.get('/verify-email', async (req, res) => {
     user.verified = true;
     user.verificationToken = null;
     await user.save();
-    
+
     // Direct redirect to frontend with success status
     res.redirect(`http://localhost:3000/verify-email?verified=true&email=${encodeURIComponent(email)}`);
   } catch (error) {
@@ -337,25 +342,25 @@ router.post('/resend-verification', async (req, res) => {
   if (!email) {
     return res.status(400).json({ success: false, message: 'Email is required.' });
   }
-  
+
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
-    
+
     if (user.verified) {
       return res.status(400).json({ success: false, message: 'Email is already verified.' });
     }
-    
+
     // Generate new verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
     user.verificationToken = verificationToken;
     await user.save();
-    
+
     // Send verification email
     await sendVerificationEmail(user, verificationToken);
-    
+
     res.json({ success: true, message: 'Verification email sent successfully.' });
   } catch (error) {
     console.error('Resend verification error:', error);
@@ -440,7 +445,7 @@ router.get('/me', async (req, res) => {
 router.post('/cleanup-tasks', async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({ error: 'Email required' });
     }
