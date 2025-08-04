@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Box, 
   Chip, 
@@ -62,6 +63,10 @@ const groupTasks = (tasks) => {
 
 
 const MyTasks = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const currentFilter = params.get('filter');
+  
   const { 
     tasks, 
     loading, 
@@ -74,13 +79,44 @@ const MyTasks = () => {
   
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, taskId: null });
+  const [deleteConfirm, setDeleteConfirm] = useState({ 
+    open: false, 
+    taskId: null, 
+    taskTitle: null 
+  });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [addTaskTitle, setAddTaskTitle] = useState('');
 
   const handleAddTask = () => {
-    setEditingTask(null);
+    // If there's text in the input, use it as the title
+    if (addTaskTitle.trim()) {
+      setEditingTask({ title: addTaskTitle });
+    } else {
+      setEditingTask(null);
+    }
     setFormOpen(true);
+  };
+
+  const handleQuickAdd = () => {
+    if (addTaskTitle.trim()) {
+      const taskData = {
+        title: addTaskTitle.trim(),
+        description: '',
+        status: 'pending',
+        priority: 'medium',
+        due_date: null,
+        due_time: null
+      };
+      
+      createTask(taskData)
+        .then(() => {
+          setSnackbar({ open: true, message: 'Task added successfully!', severity: 'success' });
+          setAddTaskTitle('');
+        })
+        .catch((error) => {
+          setSnackbar({ open: true, message: error.message, severity: 'error' });
+        });
+    }
   };
 
   const handleEditTask = (task) => {
@@ -105,15 +141,24 @@ const MyTasks = () => {
     }
   };
 
-  const handleDeleteTask = (taskId) => {
-    setDeleteConfirm({ open: true, taskId });
+  const handleDeleteTask = (task) => {
+    setDeleteConfirm({ 
+      open: true, 
+      taskId: task.id,
+      taskTitle: task.title
+    });
   };
 
   const confirmDeleteTask = () => {
     if (deleteConfirm.taskId) {
       deleteTask(deleteConfirm.taskId);
+      setSnackbar({ 
+        open: true, 
+        message: `Task "${deleteConfirm.taskTitle}" has been deleted.`,
+        severity: 'info' 
+      });
     }
-    setDeleteConfirm({ open: false, taskId: null });
+    setDeleteConfirm({ open: false, taskId: null, taskTitle: null });
   };
 
   const cancelDeleteTask = () => {
@@ -125,6 +170,26 @@ const MyTasks = () => {
   };
 
   const { todayTasks, upcomingTasks, completedTasks } = groupTasks(tasks);
+  
+  // Filter tasks based on current filter
+  const getFilteredTasks = () => {
+    switch (currentFilter) {
+      case 'today':
+        return { todayTasks, upcomingTasks: [], completedTasks: [] };
+      case 'upcoming':
+        return { todayTasks: [], upcomingTasks, completedTasks: [] };
+      case 'completed':
+        return { todayTasks: [], upcomingTasks: [], completedTasks };
+      default:
+        return { todayTasks, upcomingTasks, completedTasks };
+    }
+  };
+  
+  const filteredTasks = getFilteredTasks();
+  const displayTitle = currentFilter ? 
+    (currentFilter === 'today' ? "Today's Tasks" : 
+     currentFilter === 'upcoming' ? 'Upcoming Tasks' : 
+     currentFilter === 'completed' ? 'Completed Tasks' : 'My Tasks') : 'My Tasks';
 
   if (error) {
     return (
@@ -143,23 +208,25 @@ const MyTasks = () => {
   return (
     <Box sx={{ maxWidth: 900, mx: 'auto', mt: 4, p: { xs: 1, sm: 2 } }}>
       <Typography variant="h5" fontWeight={700} mb={2} color="primary">
-        My Tasks
-        </Typography>
+        {displayTitle}
+      </Typography>
       <Divider sx={{ mb: 2 }} />
       {/* Inline Add Task */}
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
         <TextField
           value={addTaskTitle}
           onChange={e => setAddTaskTitle(e.target.value)}
+          onClick={() => setFormOpen(true)}
           placeholder="Add a new task..."
           size="small"
           fullWidth
           onKeyDown={e => { if (e.key === 'Enter') handleAddTask(); }}
+          sx={{ cursor: 'pointer' }}
         />
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={handleAddTask}
+          onClick={addTaskTitle.trim() ? handleQuickAdd : handleAddTask}
           sx={{ borderRadius: 2, minWidth: 40, px: 2 }}
         >
           Add
@@ -178,13 +245,13 @@ const MyTasks = () => {
           )}
           
           {/* Today's Tasks */}
-          {todayTasks.length > 0 && (
+          {filteredTasks.todayTasks.length > 0 && (
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" fontWeight={700} color="primary" sx={{ mb: 2 }}>
-                📅 Today's Tasks ({todayTasks.length})
+                📅 Today's Tasks ({filteredTasks.todayTasks.length})
               </Typography>
               <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
-                {todayTasks.map(task => (
+                {filteredTasks.todayTasks.map(task => (
                   <React.Fragment key={task.id}>
                     <ListItem
                       alignItems="flex-start"
@@ -193,7 +260,12 @@ const MyTasks = () => {
                           <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
                             <EditIcon />
                           </IconButton>
-                          <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                          <IconButton 
+                            edge="end" 
+                            aria-label="delete" 
+                            onClick={() => handleDeleteTask(task)}
+                            sx={task.status === 'completed' ? { opacity: 0.7 } : {}}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </Box>
@@ -246,13 +318,13 @@ const MyTasks = () => {
           )}
           
           {/* Upcoming Tasks */}
-          {upcomingTasks.length > 0 && (
+          {filteredTasks.upcomingTasks.length > 0 && (
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" fontWeight={700} color="primary" sx={{ mb: 2 }}>
-                ⏰ Upcoming Tasks ({upcomingTasks.length})
+                ⏰ Upcoming Tasks ({filteredTasks.upcomingTasks.length})
               </Typography>
               <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
-                {upcomingTasks.map(task => (
+                {filteredTasks.upcomingTasks.map(task => (
                   <React.Fragment key={task.id}>
                     <ListItem
                       alignItems="flex-start"
@@ -261,7 +333,12 @@ const MyTasks = () => {
                           <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
                             <EditIcon />
                           </IconButton>
-                          <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                          <IconButton 
+                            edge="end" 
+                            aria-label="delete" 
+                            onClick={() => handleDeleteTask(task)}
+                            sx={task.status === 'completed' ? { opacity: 0.7 } : {}}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </Box>
@@ -314,13 +391,13 @@ const MyTasks = () => {
           )}
           
           {/* Completed Tasks */}
-          {completedTasks.length > 0 && (
+          {filteredTasks.completedTasks.length > 0 && (
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" fontWeight={700} color="primary" sx={{ mb: 2 }}>
-                ✅ Completed Tasks ({completedTasks.length})
+                ✅ Completed Tasks ({filteredTasks.completedTasks.length})
               </Typography>
               <List sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2, p: 0, mb: 2 }}>
-                {completedTasks.map(task => (
+                {filteredTasks.completedTasks.map(task => (
                   <React.Fragment key={task.id}>
                     <ListItem
                       alignItems="flex-start"
@@ -329,7 +406,12 @@ const MyTasks = () => {
                           <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
                             <EditIcon />
                           </IconButton>
-                          <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteTask(task.id)}>
+                          <IconButton 
+                            edge="end" 
+                            aria-label="delete" 
+                            onClick={() => handleDeleteTask(task)}
+                            sx={task.status === 'completed' ? { opacity: 0.7 } : {}}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </Box>
@@ -393,12 +475,46 @@ const MyTasks = () => {
         />
       )}
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteConfirm.open} onClose={cancelDeleteTask}>
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>Are you sure you want to delete this task?</DialogContent>
-        <DialogActions>
-          <Button onClick={cancelDeleteTask}>Cancel</Button>
-          <Button onClick={confirmDeleteTask} color="error">Delete</Button>
+      <Dialog
+        open={deleteConfirm.open}
+        onClose={cancelDeleteTask}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle id="alert-dialog-title" sx={{ pb: 1 }}>
+          Delete Task
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <DeleteIcon color="error" sx={{ mr: 2, fontSize: 40 }} />
+            <Box>
+              <Typography variant="h6" fontWeight={500}>
+                Delete "{deleteConfirm.taskTitle}"?
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                This action cannot be undone. The task will be permanently deleted.
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button 
+            onClick={cancelDeleteTask} 
+            variant="outlined" 
+            sx={{ mr: 1 }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={confirmDeleteTask} 
+            variant="contained" 
+            color="error"
+            startIcon={<DeleteIcon />}
+          >
+            Delete Task
+          </Button>
         </DialogActions>
       </Dialog>
       <Snackbar

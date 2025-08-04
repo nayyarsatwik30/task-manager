@@ -34,9 +34,13 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
   const location = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
-  const selectedProject = params.get('project');
+  const selectedFilter = params.get('filter');
   const [tasksOpen, setTasksOpen] = React.useState(true); // expanded by default
-  const projects = ['Home', 'Education', 'My Work'];
+  const taskFilters = [
+    { name: "Today's Tasks", value: 'today', icon: '📅' },
+    { name: 'Upcoming', value: 'upcoming', icon: '⏰' },
+    { name: 'Completed', value: 'completed', icon: '✅' }
+  ];
 
   const handleCollapse = () => setCollapsed && setCollapsed(!collapsed);
 
@@ -118,23 +122,26 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
           {!collapsed && <ListItemText primary="My Tasks" />}
           {!collapsed && (tasksOpen ? <ExpandLess /> : <ExpandMore />)}
         </ListItemButton>
-        {/* Project sub-items, only show if expanded and not collapsed */}
-        {!collapsed && tasksOpen && projects.map(project => (
+        {/* Task filter sub-items, only show if expanded and not collapsed */}
+        {!collapsed && tasksOpen && taskFilters.map(filter => (
           <ListItemButton
-            key={project}
-            selected={selectedProject === project}
-            onClick={() => navigate(`/tasks?project=${encodeURIComponent(project)}`)}
+            key={filter.value}
+            selected={selectedFilter === filter.value}
+            onClick={() => navigate(`/tasks?filter=${filter.value}`)}
             sx={{
               pl: 6,
               borderRadius: 2,
               my: 0.5,
               minHeight: 40,
-              bgcolor: selectedProject === project ? 'action.selected' : undefined,
+              bgcolor: selectedFilter === filter.value ? 'action.selected' : undefined,
               '&:hover': { bgcolor: blueHover },
-              fontWeight: selectedProject === project ? 700 : 500,
+              fontWeight: selectedFilter === filter.value ? 700 : 500,
             }}
           >
-            <ListItemText primary={project} />
+            <ListItemIcon sx={{ minWidth: 0, mr: 1, justifyContent: 'center' }}>
+              <Typography sx={{ fontSize: '16px' }}>{filter.icon}</Typography>
+            </ListItemIcon>
+            <ListItemText primary={filter.name} />
           </ListItemButton>
         ))}
         <ListItemButton
