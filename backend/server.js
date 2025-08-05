@@ -6,6 +6,7 @@ require('dotenv').config({ path: './config.env' });
 
 const tasksRoutes = require('./routes/tasks');
 const authRoutes = require('./routes/auth');
+const emailAuthRoutes = require('./routes/emailAuth');
 const preferencesRoutes = require('./routes/preferences');
 const { syncModels } = require('./models');
 const { startReminderService } = require('./utils/reminderService');
@@ -46,6 +47,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/email-auth', emailAuthRoutes);
 app.use('/api/preferences', preferencesRoutes);
 
 // 404 handler
@@ -69,22 +71,46 @@ app.use((error, req, res, next) => {
 
 // Initialize server
 const startServer = async () => {
+  console.log('🔍 Starting server initialization...');
   try {
+    console.log('🔄 Initializing database models...');
     // Initialize database tables with Sequelize
     await syncModels();
     
+    console.log('🔄 Starting HTTP server...');
     // Start server
-    app.listen(PORT, () => {
-      console.log(` Server running on port ${PORT}`);
-      console.log(` Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(` API Base URL: http://localhost:${PORT}/api`);
-      console.log(` Health Check: http://localhost:${PORT}/health`);
+    const server = app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+      console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`   API Base URL: http://localhost:${PORT}/api`);
+      console.log(`   Health Check: http://localhost:${PORT}/health`);
       
+      console.log('🔄 Starting reminder service...');
       // Start the reminder service
-      startReminderService();
+      try {
+        startReminderService();
+        console.log('✅ Reminder service started');
+      } catch (reminderError) {
+        console.error('❌ Failed to start reminder service:', reminderError);
+      }
+    });
+
+    // Handle server errors
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} is already in use`);
+      } else {
+        console.error('❌ Server error:', error);
+      }
+      process.exit(1);
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    console.error('❌ Failed to start server:');
+    console.error(error);
+    if (error.name === 'SequelizeConnectionError') {
+      console.error('Database connection error. Please check your database configuration in config.env');
+      console.error('Make sure MySQL is running and the credentials are correct');
+    }
     process.exit(1);
   }
 };

@@ -206,7 +206,8 @@ const CalendarPage = () => {
           padding: '8px',
         },
         '& .fc-daygrid-day.fc-day-today': {
-          backgroundColor: theme.palette.mode === 'dark' ? '#1a237e' : '#e3f2fd',
+          backgroundColor: theme.palette.mode === 'dark' ? '#263238' : '#f0f8ff',
+          border: theme.palette.mode === 'dark' ? '1px solid #37474f' : '1px solid #b3d9ff',
         },
         '& .fc-event': {
           borderRadius: '6px',

@@ -16,10 +16,8 @@ import { verifyEmailToken } from './utils/authUtils';
 // Create a component that uses useSearchParams inside Router context
 const AppContent = () => {
   const [searchParams] = useSearchParams();
-  // Initialize with token check from localStorage
-  const [isAuthenticated, setIsAuthenticated] = React.useState(
-    () => !!localStorage.getItem('token')
-  );
+  // Initialize as not authenticated - will verify token in useEffect
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
 
   // Check for email token on mount and when URL changes
@@ -30,8 +28,32 @@ const AppContent = () => {
         const token = localStorage.getItem('token');
         
         if (token) {
-          // If we have a token, we're authenticated
-          setIsAuthenticated(true);
+          // Verify the token with the backend
+          try {
+            const response = await fetch('http://localhost:5000/api/auth/verify-token', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (response.ok) {
+              // Token is valid
+              setIsAuthenticated(true);
+            } else {
+              // Token is invalid, remove it
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              setIsAuthenticated(false);
+            }
+          } catch (tokenError) {
+            console.error('Token verification failed:', tokenError);
+            // Remove invalid token
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setIsAuthenticated(false);
+          }
         } else if (searchParams.has('token')) {
           // If we have a token in the URL, verify it
           const result = await verifyEmailToken();
@@ -44,6 +66,7 @@ const AppContent = () => {
         }
       } catch (error) {
         console.error('Authentication error:', error);
+        setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
       }

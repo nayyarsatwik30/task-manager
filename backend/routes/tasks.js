@@ -475,7 +475,16 @@ router.get('/:id', async (req, res) => {
 // POST /api/tasks - Create new task
 router.post('/', async (req, res) => {
   try {
-    const { title, description, status, priority, due_date, due_time, userEmail } = req.body;
+    const { 
+      title, 
+      description, 
+      status = 'pending', 
+      priority = 'medium', 
+      due_date, 
+      due_time, 
+      userEmail,
+      reminder_enabled = true
+    } = req.body;
     if (!title || title.trim() === '') {
       return res.status(400).json({
         success: false,
@@ -508,7 +517,10 @@ router.post('/', async (req, res) => {
       priority: priority || 'medium',
       due_date: due_date || null,
       due_time: due_time || null,
-      user_id: user.id
+      user_id: user.id,
+      reminder_enabled: reminder_enabled !== false, // Default to true if not provided
+      reminder_sent: false,
+      reminder_sent_at: null
     });
 
     // Send email notification if user email is provided and notifications are enabled
@@ -541,7 +553,16 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, status, priority, due_date, due_time, userEmail } = req.body;
+    const { 
+      title, 
+      description, 
+      status, 
+      priority, 
+      due_date, 
+      due_time, 
+      userEmail,
+      reminder_enabled
+    } = req.body;
     
     if (!userEmail) {
       return res.status(400).json({
@@ -578,14 +599,26 @@ router.put('/:id', async (req, res) => {
     // Store old status for comparison
     const oldStatus = task.status;
     
-    await task.update({
-      title: title !== undefined ? title : task.title,
-      description: description !== undefined ? description : task.description,
-      status: status !== undefined ? status : task.status,
-      priority: priority !== undefined ? priority : task.priority,
-      due_date: due_date !== undefined ? due_date : task.due_date,
-      due_time: due_time !== undefined ? due_time : task.due_time
-    });
+    // Update task fields
+    if (title !== undefined) task.title = title;
+    if (description !== undefined) task.description = description;
+    if (status) task.status = status;
+    if (priority) task.priority = priority;
+    if (due_date !== undefined) task.due_date = due_date || null;
+    if (due_time !== undefined) task.due_time = due_time || null;
+    
+    // Reset reminder flags if due date/time changes
+    if (due_date !== undefined || due_time !== undefined) {
+      task.reminder_sent = false;
+      task.reminder_sent_at = null;
+    }
+    
+    // Update reminder settings if provided
+    if (reminder_enabled !== undefined) {
+      task.reminder_enabled = reminder_enabled;
+    }
+
+    await task.save();
 
     // Send email notification for status changes to completed
     if (userEmail && oldStatus !== 'completed' && task.status === 'completed' && req.body.emailNotifications !== false && !req.body.skipEmail) {

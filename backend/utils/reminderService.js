@@ -31,7 +31,7 @@ async function sendReminderEmail(userEmail, taskData, timeLeft) {
   }
 
   // Generate authenticated URLs
-  const taskUrl = generateAuthenticatedUrl(user, `/tasks/${taskData.id}`);
+  const taskUrl = generateAuthenticatedUrl(user, '/tasks');
   const dashboardUrl = generateAuthenticatedUrl(user, '/dashboard');
 
   // Format due date and time

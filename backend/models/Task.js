@@ -50,6 +50,20 @@ const Task = sequelize.define('Task', {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
+  reminder_sent: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
+  reminder_sent_at: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  reminder_enabled: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
+  },
 }, {
   tableName: 'tasks',
   timestamps: false,

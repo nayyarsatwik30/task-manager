@@ -508,4 +508,37 @@ router.post('/cleanup-tasks', async (req, res) => {
   }
 });
 
+// Verify token endpoint
+router.get('/verify-token', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check if user still exists
+    const user = await User.findByPk(decoded.id);
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    // Token is valid
+    res.json({ 
+      valid: true, 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email 
+      } 
+    });
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
 module.exports = router; 

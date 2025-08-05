@@ -61,15 +61,15 @@ const Dashboard = () => {
       // Calculate task completion over last 7 days
       const last7Days = [];
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      
+
       for (let i = 6; i >= 0; i--) {
         const date = dayjs().subtract(i, 'day');
-        const dayTasks = tasks.filter(task => 
-          task.status === 'completed' && 
-          task.updated_at && 
+        const dayTasks = tasks.filter(task =>
+          task.status === 'completed' &&
+          task.updated_at &&
           dayjs(task.updated_at).isSame(date, 'day')
         ).length;
-        
+
         last7Days.push({
           day: dayNames[date.day()],
           completed: dayTasks
