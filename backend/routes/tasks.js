@@ -1,12 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const { Task } = require('../models');
+const { Task, User } = require('../models');
 const { Op } = require('sequelize');
 const nodemailer = require('nodemailer');
+const { generateEmailToken } = require('../utils/emailAuth');
+
+// Get frontend URL from environment variables or use default
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+// Generate authenticated URL with token
+const generateAuthenticatedUrl = (user, path) => {
+  const token = generateEmailToken(user);
+  return `${FRONTEND_URL}${path}?token=${token}`;
+};
 
 // Email notification function for task creation
 async function sendTaskCreationEmail(userEmail, taskData) {
   try {
+    // Get user to generate token
+    const user = await User.findOne({ where: { email: userEmail } });
+    if (!user) {
+      console.error(`User not found with email: ${userEmail}`);
+      return;
+    }
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -14,6 +31,9 @@ async function sendTaskCreationEmail(userEmail, taskData) {
         pass: process.env.EMAIL_PASS,
       },
     });
+
+    // Generate authenticated dashboard URL
+    const dashboardUrl = generateAuthenticatedUrl(user, '/dashboard');
 
     const emailTemplate = `
       <!DOCTYPE html>
@@ -149,7 +169,7 @@ async function sendTaskCreationEmail(userEmail, taskData) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🎉 New Task Created!</h1>
+            <h1> New Task Created!</h1>
             <p>Your task has been successfully added to your task manager</p>
           </div>
           <div class="content">
@@ -176,7 +196,7 @@ async function sendTaskCreationEmail(userEmail, taskData) {
               You can view and manage this task from your dashboard. Keep track of your progress and stay organized!
             </p>
             <div style="text-align: center;">
-              <a href="http://localhost:3000" class="dashboard-link">View Dashboard</a>
+              <a href="${dashboardUrl}" class="dashboard-link">View Dashboard</a>
             </div>
           </div>
           <div class="footer">
@@ -205,6 +225,13 @@ async function sendTaskCreationEmail(userEmail, taskData) {
 // Email notification function for task completion
 async function sendTaskCompletionEmail(userEmail, taskData) {
   try {
+    // Get user to generate token
+    const user = await User.findOne({ where: { email: userEmail } });
+    if (!user) {
+      console.error(`User not found with email: ${userEmail}`);
+      return;
+    }
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -212,6 +239,9 @@ async function sendTaskCompletionEmail(userEmail, taskData) {
         pass: process.env.EMAIL_PASS,
       },
     });
+
+    // Generate authenticated dashboard URL
+    const dashboardUrl = generateAuthenticatedUrl(user, '/dashboard');
 
     const emailTemplate = `
       <!DOCTYPE html>
@@ -378,8 +408,11 @@ async function sendTaskCompletionEmail(userEmail, taskData) {
               You're making great progress! Continue managing your tasks and stay productive.
             </p>
             <div style="text-align: center;">
-              <a href="http://localhost:3000" class="dashboard-link">View Dashboard</a>
+              <a href="${dashboardUrl}" class="dashboard-link">View Dashboard</a>
             </div>
+            <p style="font-size: 12px; color: #7f8c8d; text-align: center; margin-top: 15px;">
+              The dashboard link will log you in automatically and expires in 1 hour for security.
+            </p>
           </div>
           <div class="footer">
             <p>This email was sent from your Task Manager application.</p>
