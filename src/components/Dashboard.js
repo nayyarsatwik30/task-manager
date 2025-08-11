@@ -193,14 +193,16 @@ const Dashboard = () => {
                 bgcolor: 'rgba(255,255,255,0.18)',
                 color: 'white',
                 border: '1px solid rgba(255,255,255,0.25)',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' }
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' },
+                width: { xs: '100%', sm: 'auto' }
               }}>
                 New Task
               </Button>
               <Button variant="outlined" color="inherit" startIcon={<CalendarMonthIcon />} href="/calendar" sx={{
                 color: 'white',
                 borderColor: 'rgba(255,255,255,0.55)',
-                '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.10)' }
+                '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.10)' },
+                width: { xs: '100%', sm: 'auto' }
               }}>
                 Open Calendar
               </Button>
@@ -230,8 +232,8 @@ const Dashboard = () => {
               Plan your day, set priorities, and track progress visually. Your insights will appear here as you add tasks.
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="center">
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} href="/tasks">Create Task</Button>
-              <Button variant="outlined" startIcon={<CalendarMonthIcon />} href="/calendar">Open Calendar</Button>
+              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} href="/tasks" sx={{ width: { xs: '100%', sm: 'auto' } }}>Create Task</Button>
+              <Button variant="outlined" startIcon={<CalendarMonthIcon />} href="/calendar" sx={{ width: { xs: '100%', sm: 'auto' } }}>Open Calendar</Button>
             </Stack>
           </Card>
         )}
@@ -269,7 +271,7 @@ const Dashboard = () => {
                     borderRadius: 3,
                     transition: 'transform 0.22s cubic-bezier(.4,2,.6,1), box-shadow 0.22s cubic-bezier(.4,2,.6,1), background-color 0.2s ease',
                     width: '100%',
-                    maxWidth: 220,
+                    maxWidth: { xs: '100%', sm: 220 },
                     boxShadow: theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 4px 18px rgba(0,0,0,0.08)',
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
                     border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
@@ -321,7 +323,7 @@ const Dashboard = () => {
             <Card
               elevation={0}
               sx={{
-                p: 3,
+                p: { xs: 2, sm: 3 },
                 height: '100%',
                 borderRadius: 4,
                 transition: 'transform 0.2s, box-shadow 0.2s',
@@ -361,7 +363,7 @@ const Dashboard = () => {
             <Card
               elevation={0}
               sx={{
-                p: 3,
+                p: { xs: 2, sm: 3 },
                 height: '100%',
                 borderRadius: 4,
                 transition: 'transform 0.2s, box-shadow 0.2s',
@@ -404,7 +406,7 @@ const Dashboard = () => {
             <Card
               elevation={0}
               sx={{
-                p: 3,
+                p: { xs: 2, sm: 3 },
                 height: '100%',
                 borderRadius: 4,
                 transition: 'transform 0.2s, box-shadow 0.2s',

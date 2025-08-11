@@ -106,17 +106,18 @@ const Profile = () => {
         {/* Edit Profile & Change Password */}
         <Grid item xs={12} md={8}>
           <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
               <Typography variant="h6" fontWeight={600} sx={{ flex: 1 }}>Edit Profile</Typography>
               {!editMode ? (
-                <Button startIcon={<EditIcon />} onClick={handleEdit} variant="outlined">Edit</Button>
+                <Button startIcon={<EditIcon />} onClick={handleEdit} variant="outlined" sx={{ width: { xs: '100%', sm: 'auto' } }}>Edit</Button>
               ) : (
                 <>
-                  <Button startIcon={<SaveIcon />} onClick={handleSave} variant="contained" sx={{ mr: 1 }}>Save</Button>
-                  <Button startIcon={<CancelIcon />} onClick={handleCancel} variant="outlined" color="error">Cancel</Button>
+                  <Button startIcon={<SaveIcon />} onClick={handleSave} variant="contained" sx={{ mr: { sm: 1, xs: 0 }, width: { xs: '100%', sm: 'auto' } }}>Save</Button>
+                  <Button startIcon={<CancelIcon />} onClick={handleCancel} variant="outlined" color="error" sx={{ width: { xs: '100%', sm: 'auto' } }}>Cancel</Button>
                 </>
               )}
             </Box>
+
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -152,6 +153,7 @@ const Profile = () => {
               <LockIcon color="primary" sx={{ mr: 1 }} />
               <Typography variant="h6" fontWeight={600}>Change Password</Typography>
             </Box>
+
             <Grid container spacing={2}>
               <Grid item xs={12} sm={4}>
                 <TextField
@@ -190,15 +192,16 @@ const Profile = () => {
                 />
               </Grid>
             </Grid>
-            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-              <Button variant="contained" color="primary">Change Password</Button>
-              <Button variant="outlined" color="secondary">Cancel</Button>
+            <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button variant="contained" color="primary" sx={{ width: { xs: '100%', sm: 'auto' } }}>Change Password</Button>
+              <Button variant="outlined" color="secondary" sx={{ width: { xs: '100%', sm: 'auto' } }}>Cancel</Button>
             </Box>
           </Paper>
+
         </Grid>
       </Grid>
     </Box>
   );
 };
 
-export default Profile; 
+export default Profile;

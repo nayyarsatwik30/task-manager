@@ -60,10 +60,22 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
       }}
     >
       <Toolbar sx={{ minHeight: HEADER_HEIGHT, height: HEADER_HEIGHT, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
-        {/* Left side: App name */}
-        <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 700, fontSize: '1.2rem', letterSpacing: 1 }}>
-          Task Manager
-        </Typography>
+        {/* Left side: mobile menu + app name */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {isMobile && (
+            <IconButton
+              edge="start"
+              aria-label="open navigation"
+              onClick={onMobileMenuClick}
+              sx={{ mr: 1 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 700, fontSize: { xs: '1.05rem', sm: '1.15rem' }, letterSpacing: 1 }}>
+            Task Manager
+          </Typography>
+        </Box>
         {/* Right side: theme toggle, avatar, menu */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>

@@ -186,12 +186,14 @@ const Settings = ({ handleLogout }) => {
           <Typography variant="h6">Data Management</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Button startIcon={<DownloadIcon />} variant="outlined" sx={{ mr: 2 }}>
-            Download Task Data (CSV)
-          </Button>
-          <Button startIcon={<DeleteIcon />} color="error" variant="outlined" onClick={() => setClearDialog(true)}>
-            Clear All Tasks
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Button startIcon={<DownloadIcon />} variant="outlined" sx={{ mr: { sm: 2, xs: 0 }, width: { xs: '100%', sm: 'auto' } }}>
+              Download Task Data (CSV)
+            </Button>
+            <Button startIcon={<DeleteIcon />} color="error" variant="outlined" onClick={() => setClearDialog(true)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+              Clear All Tasks
+            </Button>
+          </Box>
           <Dialog open={clearDialog} onClose={() => setClearDialog(false)}>
             <DialogTitle>Clear All Tasks</DialogTitle>
             <DialogContent>
@@ -212,12 +214,14 @@ const Settings = ({ handleLogout }) => {
           <Typography variant="h6">Account Actions</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Button color="warning" variant="outlined" sx={{ mr: 2 }} onClick={() => setDeactivateDialog(true)}>
-            Deactivate Account
-          </Button>
-          <Button startIcon={<DeleteIcon />} color="error" variant="contained" onClick={() => setDeleteDialog(true)}>
-            Delete Account
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Button color="warning" variant="outlined" sx={{ mr: { sm: 2, xs: 0 }, width: { xs: '100%', sm: 'auto' } }} onClick={() => setDeactivateDialog(true)}>
+              Deactivate Account
+            </Button>
+            <Button startIcon={<DeleteIcon />} color="error" variant="contained" onClick={() => setDeleteDialog(true)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+              Delete Account
+            </Button>
+          </Box>
           {/* Deactivate Dialog */}
           <Dialog open={deactivateDialog} onClose={() => setDeactivateDialog(false)}>
             <DialogTitle>Deactivate Account</DialogTitle>

@@ -69,7 +69,7 @@ const Login = ({ setIsAuthenticated }) => {
           minHeight: '100vh',
           alignItems: 'center',
           justifyContent: 'center',
-          p: 3,
+          p: { xs: 2, sm: 3 },
         }}
       >
         <Grid container sx={{ maxWidth: 500, width: '100%' }}>
@@ -84,8 +84,16 @@ const Login = ({ setIsAuthenticated }) => {
             borderRadius: 3,
             color: theme.palette.text.primary
           }}>
-            <Box sx={{ width: '100%', p: 4 }}>
-              <Typography variant="h4" fontWeight={700} gutterBottom align="center" color="primary" mb={1}>
+            <Box sx={{ width: '100%', p: { xs: 3, sm: 4 } }}>
+              <Typography 
+                variant="h4" 
+                fontWeight={700} 
+                gutterBottom 
+                align="center" 
+                color="primary" 
+                mb={1}
+                sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
+              >
                 Welcome to Task Manager
               </Typography>
               <Typography variant="body2" color="text.secondary" align="center" mb={4}>

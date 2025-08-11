@@ -237,18 +237,34 @@ const CalendarPage = () => {
           '& .fc-event-title': {
             textDecoration: 'line-through',
           }
+        },
+        [theme.breakpoints.down('sm')]: {
+          '& .fc-header-toolbar': {
+            padding: '12px'
+          },
+          '& .fc-toolbar-title': {
+            fontSize: '1.125rem'
+          },
+          '& .fc-daygrid-day': {
+            minHeight: '80px'
+          },
+          '& .fc-button': {
+            padding: '6px 10px'
+          }
         }
       }}
     >
       <Box sx={{ 
         backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#ffffff',
-        padding: '20px',
+        padding: { xs: '12px', sm: '20px' },
         borderRadius: '12px 12px 0 0',
         marginBottom: 0,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        flexWrap: 'wrap',
+        gap: 1,
       }}>
         <Box>
           <h1 style={{ 
@@ -270,7 +286,8 @@ const CalendarPage = () => {
             borderRadius: '8px',
             textTransform: 'none',
             fontWeight: 600,
-            padding: '10px 20px'
+            padding: '10px 20px',
+            width: { xs: '100%', sm: 'auto' }
           }}
           onClick={() => setDialogOpen(true)}
         >

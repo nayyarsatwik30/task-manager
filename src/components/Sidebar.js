@@ -49,8 +49,8 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
 
   const blueHover = theme => theme.palette.mode === 'light' ? '#e3f2fd' : '#1565c0';
 
-  return (
-    <Box sx={{ position: 'fixed', left: 0, top: 0, height: '100vh', width: collapsed ? 64 : 240, bgcolor: 'background.paper', p: 1, transition: 'width 0.2s', zIndex: 1202, boxShadow: 1, overflow: 'hidden' }}>
+  const NavContent = (
+    <Box sx={{ width: collapsed ? 64 : 240, bgcolor: 'background.paper', p: 1 }}>
       {/* App title and hamburger */}
       <Box sx={{
         display: 'flex',
@@ -59,22 +59,18 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
         mb: 2,
         mt: 2,
         px: collapsed ? 0 : 2,
-        bgcolor: 'background.paper', // Always match sidebar color
+        bgcolor: 'background.paper',
         borderRadius: 2,
         boxShadow: 'none',
         minHeight: 40
       }}>
-        {/* Removed MyApp Typography from sidebar */}
         <IconButton 
           onClick={handleCollapse} 
           size="large"
           sx={{ 
             color: theme.palette.mode === 'light' ? 'black' : 'white',
             bgcolor: 'transparent',
-            '&:hover': { 
-              bgcolor: 'background.paper',
-              transform: 'scale(1.05)'
-            },
+            '&:hover': { bgcolor: 'background.paper', transform: 'scale(1.05)' },
             transition: 'all 0.2s'
           }}
         >
@@ -100,16 +96,13 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
           </ListItemIcon>
           {!collapsed && <ListItemText primary="Dashboard" />}
         </ListItemButton>
-                  <ListItemButton
+        <ListItemButton
           selected={location.pathname === '/tasks'}
-                    onClick={() => {
-            navigate('/tasks');
-            if (!collapsed) setTasksOpen(o => !o);
-                    }}
-                    sx={{
+          onClick={() => { navigate('/tasks'); if (!collapsed) setTasksOpen(o => !o); }}
+          sx={{
             borderRadius: 2,
             my: 0.5,
-                      minHeight: 48,
+            minHeight: 48,
             justifyContent: collapsed ? 'center' : 'flex-start',
             px: collapsed ? 0 : 3,
             '&:hover': { bgcolor: blueHover },
@@ -122,7 +115,6 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
           {!collapsed && <ListItemText primary="My Tasks" />}
           {!collapsed && (tasksOpen ? <ExpandLess /> : <ExpandMore />)}
         </ListItemButton>
-        {/* Task filter sub-items, only show if expanded and not collapsed */}
         {!collapsed && tasksOpen && taskFilters.map(filter => (
           <ListItemButton
             key={filter.value}
@@ -148,8 +140,8 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
           selected={location.pathname === '/calendar'}
           onClick={() => navigate('/calendar')}
           sx={{
-                      borderRadius: 2,
-                      my: 0.5,
+            borderRadius: 2,
+            my: 0.5,
             minHeight: 48,
             justifyContent: collapsed ? 'center' : 'flex-start',
             px: collapsed ? 0 : 3,
@@ -159,12 +151,33 @@ const Sidebar = ({ open, setOpen, mobileOpen, setMobileOpen, collapsed = false, 
         >
           <ListItemIcon sx={{ minWidth: 0, mr: collapsed ? 0 : 2, justifyContent: 'center' }}>
             <CalendarTodayIcon />
-                    </ListItemIcon>
+          </ListItemIcon>
           {!collapsed && <ListItemText primary="Calendar" />}
-                  </ListItemButton>
-        </List>
+        </ListItemButton>
+      </List>
     </Box>
   );
-};
+
+  if (isPersistent) {
+    return (
+      <Box sx={{ position: 'fixed', left: 0, top: 0, height: '100vh', width: collapsed ? 64 : 240, bgcolor: 'background.paper', transition: 'width 0.2s', zIndex: 1202, boxShadow: 1, overflow: 'hidden' }}>
+        {NavContent}
+      </Box>
+    );
+  }
+
+  return (
+    <Drawer
+      variant="temporary"
+      open={drawerIsOpen}
+      onClose={() => setMobileOpen && setMobileOpen(false)}
+      ModalProps={{ keepMounted: true }}
+      PaperProps={{ sx: { width: 240, bgcolor: 'background.paper' } }}
+    >
+      {NavContent}
+    </Drawer>
+  );
+}
+;
 
 export default Sidebar; 

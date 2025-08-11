@@ -212,7 +212,7 @@ const MyTasks = () => {
       </Typography>
       <Divider sx={{ mb: 2 }} />
       {/* Inline Add Task */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'stretch', mb: 2, gap: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
         <TextField
           value={addTaskTitle}
           onChange={e => setAddTaskTitle(e.target.value)}
@@ -227,7 +227,7 @@ const MyTasks = () => {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={addTaskTitle.trim() ? handleQuickAdd : handleAddTask}
-          sx={{ borderRadius: 2, minWidth: 40, px: 2 }}
+          sx={{ borderRadius: 2, minWidth: 40, px: 2, width: { xs: '100%', sm: 'auto' } }}
         >
           Add
         </Button>
@@ -256,7 +256,7 @@ const MyTasks = () => {
                     <ListItem
                       alignItems="flex-start"
                       secondaryAction={
-                        <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1 }}>
                           <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
                             <EditIcon />
                           </IconButton>
@@ -306,6 +306,20 @@ const MyTasks = () => {
                             <Typography variant="caption" color="text.secondary">
                               {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
                             </Typography>
+                            {/* Mobile actions */}
+                            <Box sx={{ display: { xs: 'flex', sm: 'none' }, gap: 1, mt: 1 }}>
+                              <IconButton size="small" aria-label="edit" onClick={() => handleEditTask(task)}>
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton 
+                                size="small" 
+                                aria-label="delete" 
+                                onClick={() => handleDeleteTask(task)}
+                                sx={task.status === 'completed' ? { opacity: 0.7 } : {}}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                           </>
                         }
                       />
@@ -329,7 +343,7 @@ const MyTasks = () => {
                     <ListItem
                       alignItems="flex-start"
                       secondaryAction={
-                        <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1 }}>
                           <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
                             <EditIcon />
                           </IconButton>
@@ -379,6 +393,20 @@ const MyTasks = () => {
                             <Typography variant="caption" color="text.secondary">
                               {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
                             </Typography>
+                            {/* Mobile actions */}
+                            <Box sx={{ display: { xs: 'flex', sm: 'none' }, gap: 1, mt: 1 }}>
+                              <IconButton size="small" aria-label="edit" onClick={() => handleEditTask(task)}>
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton 
+                                size="small" 
+                                aria-label="delete" 
+                                onClick={() => handleDeleteTask(task)}
+                                sx={task.status === 'completed' ? { opacity: 0.7 } : {}}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                           </>
                         }
                       />
@@ -402,7 +430,7 @@ const MyTasks = () => {
                     <ListItem
                       alignItems="flex-start"
                       secondaryAction={
-                        <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1 }}>
                           <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
                             <EditIcon />
                           </IconButton>
@@ -452,6 +480,20 @@ const MyTasks = () => {
                             <Typography variant="caption" color="text.secondary">
                               {task.due_date ? `Due: ${dayjs(task.due_date).format('MMM DD, YYYY')}` : ''}
                             </Typography>
+                            {/* Mobile actions */}
+                            <Box sx={{ display: { xs: 'flex', sm: 'none' }, gap: 1, mt: 1 }}>
+                              <IconButton size="small" aria-label="edit" onClick={() => handleEditTask(task)}>
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton 
+                                size="small" 
+                                aria-label="delete" 
+                                onClick={() => handleDeleteTask(task)}
+                                sx={task.status === 'completed' ? { opacity: 0.7 } : {}}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                           </>
                         }
                       />
