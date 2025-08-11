@@ -1,10 +1,12 @@
 // Dashboard page with analytics cards and charts
 import React, { useState, useEffect } from 'react';
-import { Grid, Card, Typography, Box, LinearProgress, Chip, Avatar, Container, CircularProgress } from '@mui/material';
+import { Grid, Card, Typography, Box, LinearProgress, Chip, Avatar, Container, CircularProgress, Button, Stack, Divider } from '@mui/material';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartTooltip, ResponsiveContainer } from 'recharts';
 import { useTasks } from '../hooks/useTasks';
 import dayjs from 'dayjs';
@@ -142,31 +144,109 @@ const Dashboard = () => {
     <Box sx={{
       display: 'flex',
       justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100%',
-      py: 2,
-      bgcolor: theme => theme.palette.mode === 'dark' ? '#181a20' : '#f4f6fa',
+      alignItems: 'flex-start',
+      minHeight: '100vh',
+      height: '100%',
+      p: 0,
+      m: 0,
+      overflowX: 'hidden',
+      bgcolor: theme => theme.palette.mode === 'dark' ? '#0f1218' : '#f3f6fb',
+      backgroundImage: theme => theme.palette.mode === 'dark'
+        ? 'radial-gradient(1200px 400px at 20% -20%, rgba(30, 144, 255, 0.12), transparent), radial-gradient(900px 300px at 110% 10%, rgba(156, 39, 176, 0.12), transparent)'
+        : 'radial-gradient(1200px 400px at 20% -20%, rgba(25, 118, 210, 0.10), transparent), radial-gradient(900px 300px at 110% 10%, rgba(156, 39, 176, 0.08), transparent)'
     }}>
-      <Container maxWidth="xl" sx={{
+      <Container maxWidth={false} disableGutters sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
+        alignItems: 'stretch',
         width: '100%'
       }}>
-        <Typography variant="h4" fontWeight={700} mb={4} color="primary" textAlign="center">
-          Dashboard Overview
-        </Typography>
+        {/* Hero Header */}
+        <Box sx={{
+          width: '100%',
+          borderRadius: 0,
+          mt: 0,
+          mb: 3,
+          p: { xs: 3, md: 4 },
+          color: 'white',
+          overflow: 'hidden',
+          position: 'relative',
+          background: 'linear-gradient(135deg, #1976d2 0%, #7b1fa2 100%)',
+          boxShadow: theme => theme.palette.mode === 'dark' ? 8 : 6,
+        }}>
+          <Box sx={{ position: 'absolute', inset: 0, opacity: 0.15, backgroundImage: 'radial-gradient(circle at 20% 10%, #fff 0, transparent 40%), radial-gradient(circle at 80% 30%, #fff 0, transparent 30%)' }} />
+          <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} justifyContent="space-between" sx={{ position: 'relative' }}>
+            <Box>
+              <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: 0.2 }}>
+                Welcome back 👋
+              </Typography>
+              <Typography variant="body1" sx={{ opacity: 0.9, mt: 0.5 }}>
+                Here's a quick snapshot of your productivity. Keep the momentum going!
+              </Typography>
+              <Stack direction="row" spacing={1.2} mt={2}>
+                <Chip color="default" label={`Today: ${dayjs().format('ddd, MMM D')}`} sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.25)' }} />
+                <Chip color="default" label={`Tasks: ${tasks.length}`} sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.25)' }} />
+              </Stack>
+            </Box>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={{ xs: 2, md: 0 }}>
+              <Button variant="contained" color="secondary" startIcon={<AddCircleOutlineIcon />} href="/tasks" sx={{
+                bgcolor: 'rgba(255,255,255,0.18)',
+                color: 'white',
+                border: '1px solid rgba(255,255,255,0.25)',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' }
+              }}>
+                New Task
+              </Button>
+              <Button variant="outlined" color="inherit" startIcon={<CalendarMonthIcon />} href="/calendar" sx={{
+                color: 'white',
+                borderColor: 'rgba(255,255,255,0.55)',
+                '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.10)' }
+              }}>
+                Open Calendar
+              </Button>
+            </Stack>
+          </Stack>
+        </Box>
+
+        {/* Empty State */}
+        {tasks.length === 0 && (
+          <Card elevation={0} sx={{
+            width: '100%',
+            maxWidth: 900,
+            py: 6,
+            px: 3,
+            mb: 4,
+            textAlign: 'center',
+            borderRadius: 4,
+            border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e6e8ef',
+            bgcolor: theme => theme.palette.mode === 'dark' ? '#151922' : '#ffffff',
+            backdropFilter: 'saturate(140%) blur(6px)'
+          }}>
+            <Avatar sx={{ width: 64, height: 64, mx: 'auto', mb: 2, bgcolor: 'primary.light' }}>
+              <AssignmentTurnedInIcon />
+            </Avatar>
+            <Typography variant="h5" fontWeight={700} gutterBottom>Get started by creating your first task</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 560, mx: 'auto', mb: 3 }}>
+              Plan your day, set priorities, and track progress visually. Your insights will appear here as you add tasks.
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="center">
+              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} href="/tasks">Create Task</Button>
+              <Button variant="outlined" startIcon={<CalendarMonthIcon />} href="/calendar">Open Calendar</Button>
+            </Stack>
+          </Card>
+        )}
         {/* Analytics Cards Section */}
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', px: { xs: 1, sm: 0 } }}>
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', px: 0 }}>
           <Box sx={{
             width: '100%',
-            maxWidth: 950,
+            maxWidth: '100%',
             mb: 4,
-            px: { xs: 1.5, sm: 1 }, // add horizontal padding for mobile
+            px: { xs: 1.5, sm: 2, md: 3 }, // subtle inner padding only, no outer gutters
             py: { xs: 1, sm: 2 },
             borderRadius: 4,
-            boxShadow: 0,
-            bgcolor: theme => theme.palette.mode === 'dark' ? '#23272f' : '#fff',
+            boxShadow: theme => theme.palette.mode === 'dark' ? '0 10px 30px rgba(0,0,0,0.35)' : '0 10px 30px rgba(37, 99, 235, 0.10)',
+            bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(23,27,36, 0.8)' : 'rgba(255,255,255, 0.9)',
+            backdropFilter: 'saturate(140%) blur(8px)',
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
             justifyContent: { xs: 'center', md: 'center' },
@@ -177,7 +257,7 @@ const Dashboard = () => {
             {analytics.map((item, idx) => (
               <Box key={item.label} sx={{ flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                 <Card
-                  elevation={theme.palette.mode === 'dark' ? 5 : 8}
+                  elevation={theme.palette.mode === 'dark' ? 0 : 0}
                   sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -187,16 +267,16 @@ const Dashboard = () => {
                     height: '100%',
                     minHeight: 120,
                     borderRadius: 3,
-                    transition: 'transform 0.22s cubic-bezier(.4,2,.6,1), box-shadow 0.22s cubic-bezier(.4,2,.6,1)',
+                    transition: 'transform 0.22s cubic-bezier(.4,2,.6,1), box-shadow 0.22s cubic-bezier(.4,2,.6,1), background-color 0.2s ease',
                     width: '100%',
                     maxWidth: 220,
-                    boxShadow: theme.palette.mode === 'dark' ? 2 : 6,
-                    bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : '#fff',
-                    border: theme.palette.mode === 'dark' ? 'none' : '1px solid #e0e0e0',
+                    boxShadow: theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 4px 18px rgba(0,0,0,0.08)',
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
+                    border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
                     '&:hover': {
                       transform: 'translateY(-6px) scale(1.025)',
-                      boxShadow: theme.palette.mode === 'dark' ? 7 : 12,
-                      bgcolor: theme => theme.palette.mode === 'dark' ? '#23272f' : '#fafbfc',
+                      boxShadow: theme.palette.mode === 'dark' ? '0 16px 40px rgba(0,0,0,0.45)' : '0 14px 30px rgba(37, 99, 235, 0.18)',
+                      bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#fafbfc',
                     }
                   }}
                 >
@@ -239,19 +319,20 @@ const Dashboard = () => {
         <Grid container spacing={3} sx={{ width: '100%', justifyContent: 'center' }}>
           <Grid item xs={12} md={6} lg={6} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Card
-              elevation={4}
+              elevation={0}
               sx={{
                 p: 3,
                 height: '100%',
                 borderRadius: 4,
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 width: '100%',
-
-                bgcolor: 'background.paper',
+                border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
+                boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
+                bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.02)',
-                  boxShadow: 8,
-                  bgcolor: theme.palette.mode === 'dark' ? '#23272f' : 'grey.50',
+                  boxShadow: theme => theme.palette.mode === 'dark' ? '0 16px 40px rgba(0,0,0,0.45)' : '0 14px 30px rgba(37, 99, 235, 0.18)',
+                  bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'grey.50',
                 }
               }}
             >
@@ -278,19 +359,20 @@ const Dashboard = () => {
 
           <Grid item xs={12} md={6} lg={6} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Card
-              elevation={4}
+              elevation={0}
               sx={{
                 p: 3,
                 height: '100%',
                 borderRadius: 4,
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 width: '100%',
-
-                bgcolor: 'background.paper',
+                border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
+                boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
+                bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.02)',
-                  boxShadow: 8,
-                  bgcolor: theme.palette.mode === 'dark' ? '#23272f' : 'grey.50',
+                  boxShadow: theme => theme.palette.mode === 'dark' ? '0 16px 40px rgba(0,0,0,0.45)' : '0 14px 30px rgba(37, 99, 235, 0.18)',
+                  bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'grey.50',
                 }
               }}
             >
@@ -320,19 +402,20 @@ const Dashboard = () => {
 
           <Grid item xs={12} md={12} lg={12} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Card
-              elevation={4}
+              elevation={0}
               sx={{
                 p: 3,
                 height: '100%',
                 borderRadius: 4,
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 width: '100%',
-
-                bgcolor: 'background.paper',
+                border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
+                boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
+                bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
                 '&:hover': {
                   transform: 'translateY(-4px) scale(1.02)',
-                  boxShadow: 8,
-                  bgcolor: theme.palette.mode === 'dark' ? '#23272f' : 'grey.50',
+                  boxShadow: theme => theme.palette.mode === 'dark' ? '0 16px 40px rgba(0,0,0,0.45)' : '0 14px 30px rgba(37, 99, 235, 0.18)',
+                  bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'grey.50',
                 }
               }}
             >
@@ -360,4 +443,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

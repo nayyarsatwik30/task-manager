@@ -85,9 +85,9 @@ const Signup = ({ setIsAuthenticated }) => {
     console.log('Google signup clicked');
   };
 
-  const handleFacebookSignup = () => {
-    // TODO: Implement Facebook OAuth
-    console.log('Facebook signup clicked');
+  const handleMicrosoftSignup = () => {
+    // Redirect to backend Microsoft OAuth route
+    window.location.href = 'http://localhost:5000/api/auth/microsoft';
   };
 
   return (
@@ -118,241 +118,246 @@ const Signup = ({ setIsAuthenticated }) => {
               <Typography variant="h4" fontWeight={700} gutterBottom align="center" color="primary" mb={1}>
                 Create Account
               </Typography>
-            <Typography variant="body2" color="text.secondary" align="center" mb={4}>
-              Join Task Manager and start managing your tasks efficiently
-            </Typography>
-            
-            <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
-              <TextField
-                required
-                fullWidth
-                id="fullName"
-                label="Full Name"
-                name="fullName"
-                autoComplete="name"
-                value={formData.fullName}
-                onChange={handleChange('fullName')}
-                sx={{ mb: 2, 
-                  '& .MuiInputBase-root': {
-                    background: mode === 'dark' ? theme.palette.background.default : 'white',
-                    color: theme.palette.text.primary
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
-                  }
-                }}
-                error={!!errors.fullName}
-                helperText={errors.fullName}
-                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
-                InputProps={{ style: { color: theme.palette.text.primary } }}
-              />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleChange('email')}
-                sx={{ mb: 2, 
-                  '& .MuiInputBase-root': {
-                    background: mode === 'dark' ? theme.palette.background.default : 'white',
-                    color: theme.palette.text.primary
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
-                  }
-                }}
-                error={!!errors.email}
-                helperText={errors.email}
-                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
-                InputProps={{ style: { color: theme.palette.text.primary } }}
-              />
+              <Typography variant="body2" color="text.secondary" align="center" mb={4}>
+                Join Task Manager and start managing your tasks efficiently
+              </Typography>
               
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete="new-password"
-                value={formData.password}
-                onChange={handleChange('password')}
-                sx={{ mb: 2, 
-                  '& .MuiInputBase-root': {
-                    background: mode === 'dark' ? theme.palette.background.default : 'white',
-                    color: theme.palette.text.primary
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
-                  }
-                }}
-                error={!!errors.password}
-                helperText={errors.password}
-                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={handleShowPassword} edge="end" aria-label="toggle password visibility">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  style: { color: theme.palette.text.primary },
-                }}
-              />
-              
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="confirmPassword"
-                label="Confirm Password"
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmPassword"
-                autoComplete="new-password"
-                value={formData.confirmPassword}
-                onChange={handleChange('confirmPassword')}
-                sx={{ mb: 2, 
-                  '& .MuiInputBase-root': {
-                    background: mode === 'dark' ? theme.palette.background.default : 'white',
-                    color: theme.palette.text.primary
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: mode === 'dark' ? theme.palette.text.secondary : undefined
-                  }
-                }}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword}
-                InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={handleShowConfirmPassword} edge="end" aria-label="toggle confirm password visibility">
-                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  style: { color: theme.palette.text.primary },
-                }}
-              />
-              
-              <FormControlLabel
-                control={
-                  <Checkbox 
-                    checked={formData.terms} 
-                    onChange={handleChange('terms')} 
-                    color="primary" 
-                  />
-                }
-                label={
-                  <Typography variant="body2">
-                    I agree to the{' '}
-                    <Link href="#" color="primary" underline="hover">
-                      Terms of Service
-                    </Link>
-                    {' '}and{' '}
-                    <Link href="#" color="primary" underline="hover">
-                      Privacy Policy
-                    </Link>
-                  </Typography>
-                }
-                sx={{ mb: 1 }}
-              />
-              {errors.terms && (
-                <Typography variant="caption" color="error" sx={{ ml: 1, mb: 2, display: 'block' }}>{errors.terms}</Typography>
-              )}
-              {errors.api && (
-                <Typography variant="caption" color="error" sx={{ ml: 1, mb: 2, display: 'block' }}>{errors.api}</Typography>
-              )}
-              
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                sx={{ 
-                  py: 1.5, 
-                  fontWeight: 600, 
-                  fontSize: '1rem', 
-                  borderRadius: 2, 
-                  boxShadow: '0 4px 16px rgba(25,118,210,0.3)',
-                  background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
-                    boxShadow: '0 6px 20px rgba(25,118,210,0.4)',
-                  }
-                }}
-              >
-                Create Account
-              </Button>
-            </Box>
-
-            <Box sx={{ mt: 3 }}>
-              <Divider sx={{ mb: 3 }}>
-                <Typography variant="body2" color="text.secondary">
-                  OR
-                </Typography>
-              </Divider>
-              <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-                <GoogleLogin
-                  onSuccess={credentialResponse => {
-                    fetch('http://localhost:5000/api/auth/google', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ token: credentialResponse.credential }),
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                      if (data.success) {
-                        localStorage.setItem('userEmail', data.user.email);
-                        setIsAuthenticated && setIsAuthenticated(true);
-                        navigate('/');
-                      }
-                    });
+              <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
+                <TextField
+                  required
+                  fullWidth
+                  id="fullName"
+                  label="Full Name"
+                  name="fullName"
+                  autoComplete="name"
+                  value={formData.fullName}
+                  onChange={handleChange('fullName')}
+                  sx={{ mb: 2, 
+                    '& .MuiInputBase-root': {
+                      background: mode === 'dark' ? theme.palette.background.default : 'white',
+                      color: theme.palette.text.primary
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                    }
                   }}
-                  onError={() => {
-                    console.log('Google Signup Failed');
+                  error={!!errors.fullName}
+                  helperText={errors.fullName}
+                  InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
+                  InputProps={{ style: { color: theme.palette.text.primary } }}
+                />
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="email"
+                  label="Email Address"
+                  name="email"
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={handleChange('email')}
+                  sx={{ mb: 2, 
+                    '& .MuiInputBase-root': {
+                      background: mode === 'dark' ? theme.palette.background.default : 'white',
+                      color: theme.palette.text.primary
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                    }
+                  }}
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
+                  InputProps={{ style: { color: theme.palette.text.primary } }}
+                />
+                
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  name="password"
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  autoComplete="new-password"
+                  value={formData.password}
+                  onChange={handleChange('password')}
+                  sx={{ mb: 2, 
+                    '& .MuiInputBase-root': {
+                      background: mode === 'dark' ? theme.palette.background.default : 'white',
+                      color: theme.palette.text.primary
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                    }
+                  }}
+                  error={!!errors.password}
+                  helperText={errors.password}
+                  InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={handleShowPassword} edge="end" aria-label="toggle password visibility">
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                    style: { color: theme.palette.text.primary },
                   }}
                 />
-              </GoogleOAuthProvider>
-              
-              <Button
-                fullWidth
-                variant="outlined"
-                size="large"
-                onClick={handleFacebookSignup}
-                sx={{ 
-                  py: 1.5,
-                  borderColor: '#1877f2',
-                  color: '#1877f2',
-                  '&:hover': {
-                    borderColor: '#166fe5',
-                    backgroundColor: 'rgba(24, 119, 242, 0.04)',
+                
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  name="confirmPassword"
+                  label="Confirm Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirmPassword"
+                  autoComplete="new-password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange('confirmPassword')}
+                  sx={{ mb: 2, 
+                    '& .MuiInputBase-root': {
+                      background: mode === 'dark' ? theme.palette.background.default : 'white',
+                      color: theme.palette.text.primary
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: mode === 'dark' ? theme.palette.text.secondary : undefined
+                    }
+                  }}
+                  error={!!errors.confirmPassword}
+                  helperText={errors.confirmPassword}
+                  InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={handleShowConfirmPassword} edge="end" aria-label="toggle confirm password visibility">
+                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                    style: { color: theme.palette.text.primary },
+                  }}
+                />
+                
+                <FormControlLabel
+                  control={
+                    <Checkbox 
+                      checked={formData.terms} 
+                      onChange={handleChange('terms')} 
+                      color="primary" 
+                    />
                   }
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path fill="#1877f2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                  Sign up with Facebook
-                </Box>
-              </Button>
-            </Box>
+                  label={
+                    <Typography variant="body2">
+                      I agree to the{' '}
+                      <Link href="#" color="primary" underline="hover">
+                        Terms of Service
+                      </Link>
+                      {' '}and{' '}
+                      <Link href="#" color="primary" underline="hover">
+                        Privacy Policy
+                      </Link>
+                    </Typography>
+                  }
+                  sx={{ mb: 1 }}
+                />
+                {errors.terms && (
+                  <Typography variant="caption" color="error" sx={{ ml: 1, mb: 2, display: 'block' }}>{errors.terms}</Typography>
+                )}
+                {errors.api && (
+                  <Typography variant="caption" color="error" sx={{ ml: 1, mb: 2, display: 'block' }}>{errors.api}</Typography>
+                )}
+                
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  sx={{ 
+                    py: 1.5, 
+                    fontWeight: 600, 
+                    fontSize: '1rem', 
+                    borderRadius: 2, 
+                    boxShadow: '0 4px 16px rgba(25,118,210,0.3)',
+                    background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
+                      boxShadow: '0 6px 20px rgba(25,118,210,0.4)',
+                    }
+                  }}
+                >
+                  Create Account
+                </Button>
+              </Box>
 
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Already have an account?{' '}
-                <Link href="/login" color="primary" underline="hover" sx={{ fontWeight: 600 }}>
-                  Sign in
-                </Link>
-              </Typography>
-            </Box>
+              <Box sx={{ mt: 3 }}>
+                <Divider sx={{ mb: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    OR
+                  </Typography>
+                </Divider>
+                <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                  <GoogleLogin
+                    onSuccess={credentialResponse => {
+                      fetch('http://localhost:5000/api/auth/google', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: credentialResponse.credential }),
+                      })
+                      .then(res => res.json())
+                      .then(data => {
+                        if (data.success) {
+                          localStorage.setItem('userEmail', data.user.email);
+                          setIsAuthenticated && setIsAuthenticated(true);
+                          navigate('/');
+                        }
+                      });
+                    }}
+                    onError={() => {
+                      console.log('Google Signup Failed');
+                    }}
+                  />
+                </GoogleOAuthProvider>
+                
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="large"
+                  onClick={handleMicrosoftSignup}
+                  sx={{ 
+                    py: 1.5,
+                    borderColor: '#5e5e5e',
+                    color: '#e0e0e0',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#2b2b2b' : 'transparent',
+                    '&:hover': {
+                      borderColor: '#4a4a4a',
+                      backgroundColor: theme.palette.mode === 'dark' ? '#333' : 'rgba(0,0,0,0.04)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {/* Microsoft 4-square logo */}
+                    <svg width="20" height="20" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="10" height="10" x="1" y="1" fill="#f25022"/>
+                      <rect width="10" height="10" x="12" y="1" fill="#7fba00"/>
+                      <rect width="10" height="10" x="1" y="12" fill="#00a4ef"/>
+                      <rect width="10" height="10" x="12" y="12" fill="#ffb900"/>
+                    </svg>
+                    Sign up with Microsoft
+                  </Box>
+                </Button>
+              </Box>
+
+              <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Already have an account?{' '}
+                  <Link href="/login" color="primary" underline="hover" sx={{ fontWeight: 600 }}>
+                    Sign in
+                  </Link>
+                </Typography>
+              </Box>
             </Box>
           </Grid>
         </Grid>
