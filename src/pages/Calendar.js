@@ -140,35 +140,45 @@ const CalendarPage = () => {
   return (
     <Box 
       sx={{ 
-        padding: 0,
-        backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5',
+        padding: { xs: 1, sm: 2 },
+        backgroundColor: theme.palette.mode === 'dark' ? '#0f1218' : '#f3f6fb',
+        backgroundImage: theme.palette.mode === 'dark' 
+          ? 'radial-gradient(1200px 400px at 20% -20%, rgba(30, 144, 255, 0.08), transparent), radial-gradient(900px 300px at 110% 10%, rgba(156, 39, 176, 0.08), transparent)'
+          : 'radial-gradient(1200px 400px at 20% -20%, rgba(25, 118, 210, 0.06), transparent), radial-gradient(900px 300px at 110% 10%, rgba(156, 39, 176, 0.04), transparent)',
         minHeight: '100vh',
         '& .fc': {
           backgroundColor: 'transparent',
           fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
         },
         '& .fc-header-toolbar': {
-          backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#ffffff',
-          padding: '20px',
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
+          padding: { xs: '12px 16px', sm: '16px 20px' },
           marginBottom: '0px',
-          borderRadius: '12px 12px 0 0',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          borderRadius: '8px 8px 0 0',
+          boxShadow: theme.palette.mode === 'dark' ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.08)',
+          border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
         },
         '& .fc-toolbar-title': {
           color: theme.palette.text.primary,
-          fontSize: '1.5rem',
-          fontWeight: 600,
+          fontSize: { xs: '1.25rem', sm: '1.5rem' },
+          fontWeight: 700,
+          letterSpacing: '-0.02em',
         },
         '& .fc-button': {
-          backgroundColor: theme.palette.mode === 'dark' ? '#404040' : '#e0e0e0',
-          borderColor: 'transparent',
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : '#f8f9fa',
+          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#e9ecef',
           color: theme.palette.text.primary,
-          borderRadius: '8px',
-          padding: '8px 16px',
-          fontWeight: 500,
+          borderRadius: '6px',
+          padding: { xs: '6px 12px', sm: '8px 16px' },
+          fontWeight: 600,
+          fontSize: '0.875rem',
+          minHeight: '36px',
+          transition: 'all 0.2s ease',
           '&:hover': {
             backgroundColor: theme.palette.primary.main,
             color: '#ffffff',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
           },
           '&:focus': {
             boxShadow: 'none',
@@ -190,46 +200,67 @@ const CalendarPage = () => {
           borderColor: theme.palette.divider,
         },
         '& .fc-daygrid-day': {
-          backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#ffffff',
-          borderColor: theme.palette.mode === 'dark' ? '#404040' : '#e0e0e0',
-          minHeight: '120px',
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fff',
+          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#eef1f6',
+          minHeight: { xs: '80px', sm: '100px' },
           cursor: 'pointer',
           transition: 'all 0.2s ease',
+          position: 'relative',
           '&:hover': {
-            backgroundColor: theme.palette.mode === 'dark' ? '#353535' : '#f8f9fa',
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(25, 118, 210, 0.04)',
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.3)' : 'rgba(25, 118, 210, 0.2)',
+            transform: 'scale(1.01)',
           }
         },
         '& .fc-daygrid-day-number': {
           color: theme.palette.text.primary,
-          fontWeight: 500,
-          fontSize: '0.875rem',
-          padding: '8px',
+          fontWeight: 600,
+          fontSize: { xs: '0.8rem', sm: '0.875rem' },
+          padding: { xs: '6px', sm: '8px' },
+          borderRadius: '4px',
+          transition: 'all 0.2s ease',
         },
         '& .fc-daygrid-day.fc-day-today': {
-          backgroundColor: theme.palette.mode === 'dark' ? '#263238' : '#f0f8ff',
-          border: theme.palette.mode === 'dark' ? '1px solid #37474f' : '1px solid #b3d9ff',
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.12)' : 'rgba(25, 118, 210, 0.08)',
+          border: theme.palette.mode === 'dark' ? '2px solid rgba(25, 118, 210, 0.4)' : '2px solid rgba(25, 118, 210, 0.3)',
+          boxShadow: theme.palette.mode === 'dark' ? '0 0 20px rgba(25, 118, 210, 0.2)' : '0 0 20px rgba(25, 118, 210, 0.15)',
+          '& .fc-daygrid-day-number': {
+            backgroundColor: theme.palette.primary.main,
+            color: '#fff',
+            borderRadius: '50%',
+            width: '28px',
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 700,
+          }
         },
         '& .fc-event': {
-          borderRadius: '6px',
+          borderRadius: '4px',
           border: 'none',
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          padding: '2px 6px',
+          fontSize: { xs: '0.7rem', sm: '0.75rem' },
+          fontWeight: 600,
+          padding: { xs: '1px 4px', sm: '2px 6px' },
           margin: '1px',
           cursor: 'pointer',
           transition: 'all 0.2s ease',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           '&:hover': {
-            transform: 'translateY(-1px)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            transform: 'translateY(-1px) scale(1.02)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            zIndex: 10,
           }
         },
         '& .fc-daygrid-body': {
           backgroundColor: 'transparent',
         },
         '& .fc-scrollgrid': {
-          borderRadius: '0 0 12px 12px',
+          borderRadius: '0 0 8px 8px',
           overflow: 'hidden',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          boxShadow: theme.palette.mode === 'dark' ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.08)',
+          border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
+          borderTop: 'none',
         },
         '& .completed-task': {
           opacity: 0.6,
@@ -240,58 +271,82 @@ const CalendarPage = () => {
         },
         [theme.breakpoints.down('sm')]: {
           '& .fc-header-toolbar': {
-            padding: '12px'
+            padding: '12px',
+            flexDirection: 'column',
+            gap: '8px'
+          },
+          '& .fc-toolbar-chunk': {
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '4px'
           },
           '& .fc-toolbar-title': {
-            fontSize: '1.125rem'
+            fontSize: '1.125rem',
+            order: -1
           },
           '& .fc-daygrid-day': {
-            minHeight: '80px'
+            minHeight: '70px'
           },
           '& .fc-button': {
-            padding: '6px 10px'
+            padding: '6px 8px',
+            fontSize: '0.8rem'
           }
         }
       }}
     >
       <Box sx={{ 
-        backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#ffffff',
-        padding: { xs: '12px', sm: '20px' },
-        borderRadius: '12px 12px 0 0',
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
+        padding: { xs: '16px', sm: '20px' },
+        borderRadius: '8px 8px 0 0',
         marginBottom: 0,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        boxShadow: theme.palette.mode === 'dark' ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.08)',
+        border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
         flexWrap: 'wrap',
-        gap: 1,
+        gap: 2,
       }}>
         <Box>
           <h1 style={{ 
             margin: 0, 
             color: theme.palette.text.primary,
             fontSize: '1.75rem',
-            fontWeight: 600
-          }}>Calendar</h1>
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            background: 'linear-gradient(135deg, #1976d2 0%, #7b1fa2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>📅 Calendar</h1>
           <p style={{ 
             margin: '4px 0 0 0', 
             color: theme.palette.text.secondary,
-            fontSize: '0.875rem'
-          }}>Click on any date to add a new task</p>
+            fontSize: '0.875rem',
+            fontWeight: 500
+          }}>✨ Click any date to create tasks</p>
         </Box>
         <Button 
           variant="contained" 
           color="primary"
           sx={{ 
-            borderRadius: '8px',
+            borderRadius: '6px',
             textTransform: 'none',
-            fontWeight: 600,
-            padding: '10px 20px',
-            width: { xs: '100%', sm: 'auto' }
+            fontWeight: 700,
+            padding: { xs: '10px 16px', sm: '12px 24px' },
+            width: { xs: '100%', sm: 'auto' },
+            background: 'linear-gradient(135deg, #1976d2 0%, #7b1fa2 100%)',
+            boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 8px 20px rgba(25, 118, 210, 0.4)',
+              background: 'linear-gradient(135deg, #1565c0 0%, #6a1b9a 100%)',
+            }
           }}
           onClick={() => setDialogOpen(true)}
         >
-          + New Task
+          ✨ New Task
         </Button>
       </Box>
       

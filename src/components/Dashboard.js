@@ -1,7 +1,9 @@
 // Dashboard page with analytics cards and charts
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Grid, Card, Typography, Box, LinearProgress, Chip, Avatar, Container, CircularProgress, Button, Stack, Divider } from '@mui/material';
+import { Grid, Card, Typography, Box, LinearProgress, Chip, Avatar, Container, CircularProgress, Button, Stack, Divider, useMediaQuery, IconButton, Tabs, Tab } from '@mui/material';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
@@ -13,8 +15,88 @@ import { useTasks } from '../hooks/useTasks';
 import dayjs from 'dayjs';
 import { Tooltip as MuiTooltip } from '@mui/material';
 import { useTheme } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
+// Progress Ring Component
+const ProgressRing = ({ value, max, size = 80, strokeWidth = 6, color = '#1976d2' }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const progress = max > 0 ? (value / max) * 100 : 0;
+  const strokeDasharray = `${(progress / 100) * circumference} ${circumference}`;
+  
+  return (
+    <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="rgba(255,255,255,0.1)"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={strokeDasharray}
+          strokeLinecap="round"
+          style={{
+            transition: 'stroke-dasharray 0.8s ease-in-out',
+          }}
+        />
+      </svg>
+      <Box
+        sx={{
+          position: 'absolute',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography variant="h6" fontWeight={700} color="primary">
+          {value}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+          of {max}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
 
+// Helper functions for time-based greetings and motivational messages
+const getTimeBasedGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  if (hour < 21) return 'Good evening';
+  return 'Good night';
+};
+
+const getMotivationalMessage = (tasks) => {
+  const completedTasks = tasks.filter(task => task.status === 'completed').length;
+  const totalTasks = tasks.length;
+  const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  
+  if (completionRate >= 80) {
+    return "🎉 Incredible work! You're absolutely crushing your goals today!";
+  } else if (completionRate >= 60) {
+    return "🚀 Great progress! You're well on your way to an amazing day!";
+  } else if (completionRate >= 40) {
+    return "💪 Keep going! Every completed task brings you closer to success!";
+  } else if (completionRate >= 20) {
+    return "🌟 You've got this! Small steps lead to big achievements!";
+  } else if (totalTasks > 0) {
+    return "✨ Fresh start! Today is full of possibilities - let's make it count!";
+  } else {
+    return "🎯 Ready to conquer the day? Add some tasks and let's get started!";
+  }
+};
 
 // Custom tooltip for charts
 const CustomTooltip = ({ active, payload, label }) => {
@@ -37,12 +119,34 @@ const Dashboard = () => {
   const { tasks, loading, error } = useTasks();
   const theme = useTheme();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [analytics, setAnalytics] = useState([]);
   const [chartData, setChartData] = useState({
     lineData: [],
     pieData: [],
     barData: []
   });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [greeting, setGreeting] = useState('');
+  const [motivationalMessage, setMotivationalMessage] = useState('');
+  const [currentChartIndex, setCurrentChartIndex] = useState(0);
+  const refreshTimeoutRef = useRef(null);
+
+  // Pull-to-refresh functionality
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // Simulate refresh delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsRefreshing(false);
+    // Trigger re-fetch of tasks (this would normally call your API)
+    window.location.reload();
+  };
+
+  // Initialize greetings and motivational messages
+  useEffect(() => {
+    setGreeting(getTimeBasedGreeting());
+    setMotivationalMessage(getMotivationalMessage(tasks));
+  }, [tasks]);
 
   useEffect(() => {
     if (tasks.length > 0) {
@@ -177,13 +281,40 @@ const Dashboard = () => {
           boxShadow: theme => theme.palette.mode === 'dark' ? 8 : 6,
         }}>
           <Box sx={{ position: 'absolute', inset: 0, opacity: 0.15, backgroundImage: 'radial-gradient(circle at 20% 10%, #fff 0, transparent 40%), radial-gradient(circle at 80% 30%, #fff 0, transparent 30%)' }} />
+          {/* Pull to refresh indicator */}
+          {isMobile && (
+            <Box sx={{ 
+              position: 'absolute', 
+              top: -20, 
+              left: '50%', 
+              transform: 'translateX(-50%)',
+              zIndex: 10,
+              display: isRefreshing ? 'block' : 'none'
+            }}>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<RefreshIcon />}
+                sx={{ 
+                  bgcolor: 'rgba(255,255,255,0.9)', 
+                  color: '#1976d2',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,1)' }
+                }}
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                {isRefreshing ? 'Refreshing...' : 'Pull to Refresh'}
+              </Button>
+            </Box>
+          )}
+          
           <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} justifyContent="space-between" sx={{ position: 'relative' }}>
             <Box>
               <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: 0.2 }}>
-                Welcome back 👋
+                {greeting} 👋
               </Typography>
-              <Typography variant="body1" sx={{ opacity: 0.9, mt: 0.5 }}>
-                Here's a quick snapshot of your productivity. Keep the momentum going!
+              <Typography variant="body1" sx={{ opacity: 0.9, mt: 0.5, mb: 1 }}>
+                {motivationalMessage}
               </Typography>
               <Stack direction="row" spacing={1.2} mt={2}>
                 <Chip color="default" label={`Today: ${dayjs().format('ddd, MMM D')}`} sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.25)' }} />
@@ -278,7 +409,15 @@ const Dashboard = () => {
                 >
                   <Avatar sx={{ bgcolor: item.color, mb: 1, width: 40, height: 40, boxShadow: 1 }}>{item.icon}</Avatar>
                   <Typography variant="subtitle2" color="text.secondary" gutterBottom align="center" sx={{ fontSize: 13 }}>{item.label}</Typography>
-                  <Typography variant="h5" fontWeight={800} color="primary" align="center" sx={{ mb: 0.5 }}>{item.value}</Typography>
+                  <Box sx={{ mb: 1 }}>
+                    <ProgressRing 
+                      value={item.value} 
+                      max={item.max || Math.max(item.value * 1.5, 10)} 
+                      size={70} 
+                      strokeWidth={5}
+                      color={item.color}
+                    />
+                  </Box>
                   {item.progress !== undefined && (
                     <Box mt={0.5} sx={{ width: '100%' }}>
                       <LinearProgress
@@ -311,7 +450,155 @@ const Dashboard = () => {
             ))}
         </Box>
         {/* Charts Section */}
-        <Grid container spacing={3} sx={{ width: '100%', justifyContent: 'center', maxWidth: '1400px', mx: 'auto' }}>
+        {isMobile ? (
+          <Box sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', mb: 4 }}>
+            <Typography variant="h5" fontWeight={600} mb={2} textAlign="center" color="primary">
+              Analytics Charts
+            </Typography>
+            
+            {/* Mobile Chart Navigation */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+              <IconButton 
+                onClick={() => setCurrentChartIndex(prev => prev > 0 ? prev - 1 : 2)}
+                sx={{ 
+                  bgcolor: 'primary.main', 
+                  color: 'white',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  mr: 2
+                }}
+              >
+                <ArrowBackIosIcon />
+              </IconButton>
+              
+              <Tabs 
+                value={currentChartIndex} 
+                onChange={(e, newValue) => setCurrentChartIndex(newValue)}
+                variant="fullWidth"
+                sx={{ minWidth: 200 }}
+              >
+                <Tab label="Completion" />
+                <Tab label="Priority" />
+                <Tab label="Status" />
+              </Tabs>
+              
+              <IconButton 
+                onClick={() => setCurrentChartIndex(prev => prev < 2 ? prev + 1 : 0)}
+                sx={{ 
+                  bgcolor: 'primary.main', 
+                  color: 'white',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  ml: 2
+                }}
+              >
+                <ArrowForwardIosIcon />
+              </IconButton>
+            </Box>
+
+            {/* Chart Display */}
+            <Box sx={{ position: 'relative', overflow: 'hidden' }}>
+              {/* Line Chart */}
+              {currentChartIndex === 0 && (
+                <Card
+                  elevation={0}
+                  sx={{
+                    p: { xs: 2, sm: 3 },
+                    borderRadius: 1,
+                    border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
+                    boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
+                    bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
+                  }}
+                >
+                  <Typography variant="h6" fontWeight={600} mb={3} color="primary">
+                    Task Completion (7 days)
+                  </Typography>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={chartData.lineData}>
+                      <XAxis dataKey="day" />
+                      <YAxis allowDecimals={false} />
+                      <Line
+                        type="monotone"
+                        dataKey="completed"
+                        stroke="#1976d2"
+                        strokeWidth={3}
+                        dot={{ r: 7, fill: '#1976d2', stroke: '#fff', strokeWidth: 2 }}
+                        activeDot={{ r: 10, stroke: '#1976d2', strokeWidth: 3, fill: '#fff' }}
+                      />
+                      <RechartTooltip content={<CustomTooltip />} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Card>
+              )}
+              
+              {/* Pie Chart */}
+              {currentChartIndex === 1 && (
+                <Card
+                  elevation={0}
+                  sx={{
+                    p: { xs: 2, sm: 3 },
+                    borderRadius: 1,
+                    border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
+                    boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
+                    bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
+                  }}
+                >
+                  <Typography variant="h6" fontWeight={600} mb={3} color="primary">
+                    Tasks by Priority
+                  </Typography>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={chartData.pieData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="45%"
+                        outerRadius={80}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {chartData.pieData.map((entry, idx) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartTooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Card>
+              )}
+              
+              {/* Bar Chart */}
+              {currentChartIndex === 2 && (
+                <Card
+                  elevation={0}
+                  sx={{
+                    p: { xs: 2, sm: 3 },
+                    borderRadius: 1,
+                    border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
+                    boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
+                    bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
+                  }}
+                >
+                  <Typography variant="h6" fontWeight={600} mb={3} color="primary">
+                    Tasks by Status
+                  </Typography>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={chartData.barData}>
+                      <XAxis dataKey="category" />
+                      <YAxis allowDecimals={false} />
+                      <Bar
+                        dataKey="tasks"
+                        fill="#9c27b0"
+                        radius={[12, 12, 0, 0]}
+                        barSize={44}
+                      />
+                      <RechartTooltip content={<CustomTooltip />} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Card>
+              )}
+            </Box>
+          </Box>
+        ) : (
+          <Grid container spacing={3} sx={{ width: '100%', justifyContent: 'center', maxWidth: '1400px', mx: 'auto' }}>
           <Grid item xs={12} md={12} lg={12} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Card
               elevation={0}
@@ -433,6 +720,7 @@ const Dashboard = () => {
             </Card>
           </Grid>
         </Grid>
+        )}
       </Container>
     </Box>
   );
