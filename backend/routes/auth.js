@@ -227,6 +227,67 @@ async function sendVerificationEmail(user, verificationToken) {
   });
 }
 
+// Helper: send password reset email
+async function sendPasswordResetEmail(user, resetToken) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  // Link to frontend reset page; frontend will call backend /reset-password
+  const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
+
+  const emailTemplate = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reset Your Password - Task Manager</title>
+      <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #7b1fa2 0%, #42a5f5 100%); color: white; padding: 40px 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 32px 28px; }
+        .message { font-size: 16px; color: #444; margin-bottom: 18px; }
+        .reset-button { display: inline-block; background: linear-gradient(135deg, #7b1fa2 0%, #42a5f5 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(66,165,245,0.3); transition: all 0.3s ease; }
+        .reset-button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(66,165,245,0.4); }
+        .footer { background-color: #f8f9fa; padding: 24px; text-align: center; border-top: 1px solid #e0e0e0; color: #888; font-size: 14px; }
+        @media (max-width: 600px) { .header, .content, .footer { padding: 20px; } .reset-button { display: block; text-align: center; } }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Reset your Task Manager password</h1>
+        </div>
+        <div class="content">
+          <div class="message">Hi ${user.name || 'there'},</div>
+          <div class="message">We received a request to reset your password. Click the button below to set a new password. This link will expire in 1 hour.</div>
+          <div style="text-align:center; margin: 28px 0;">
+            <a href="${resetUrl}" class="reset-button">Reset My Password</a>
+          </div>
+          <div class="message">If you didn't request a password reset, you can safely ignore this email — your password will remain the same.</div>
+          <div class="message">If the button doesn't work, copy and paste this link in your browser:<br><a href="${resetUrl}" style="color:#1976d2; word-break: break-all;">${resetUrl}</a></div>
+        </div>
+        <div class="footer">  ${new Date().getFullYear()} Task Manager</div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  await transporter.sendMail({
+    from: 'Task Manager <no-reply@taskmanager.com>',
+    to: user.email,
+    subject: 'Reset your Task Manager password',
+    html: emailTemplate,
+  });
+}
+
 // Helper: create starter tasks for new users
 async function createStarterTasksForUser(user) {
   const starterTasks = [

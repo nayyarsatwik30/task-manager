@@ -1,5 +1,6 @@
 // Dashboard page with analytics cards and charts
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Grid, Card, Typography, Box, LinearProgress, Chip, Avatar, Container, CircularProgress, Button, Stack, Divider } from '@mui/material';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -33,14 +34,15 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const Dashboard = () => {
-  const { tasks, loading } = useTasks();
+  const { tasks, loading, error } = useTasks();
+  const theme = useTheme();
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState([]);
   const [chartData, setChartData] = useState({
     lineData: [],
     pieData: [],
     barData: []
   });
-  const theme = useTheme();
 
   useEffect(() => {
     if (tasks.length > 0) {
@@ -189,7 +191,7 @@ const Dashboard = () => {
               </Stack>
             </Box>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={{ xs: 2, md: 0 }}>
-              <Button variant="contained" color="secondary" startIcon={<AddCircleOutlineIcon />} href="/tasks" sx={{
+              <Button variant="contained" color="secondary" startIcon={<AddCircleOutlineIcon />} onClick={() => navigate('/tasks')} sx={{
                 bgcolor: 'rgba(255,255,255,0.18)',
                 color: 'white',
                 border: '1px solid rgba(255,255,255,0.25)',
@@ -198,7 +200,7 @@ const Dashboard = () => {
               }}>
                 New Task
               </Button>
-              <Button variant="outlined" color="inherit" startIcon={<CalendarMonthIcon />} href="/calendar" sx={{
+              <Button variant="outlined" color="inherit" startIcon={<CalendarMonthIcon />} onClick={() => navigate('/calendar')} sx={{
                 color: 'white',
                 borderColor: 'rgba(255,255,255,0.55)',
                 '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.10)' },
@@ -238,27 +240,19 @@ const Dashboard = () => {
           </Card>
         )}
         {/* Analytics Cards Section */}
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', px: 0 }}>
-          <Box sx={{
-            width: '100%',
-            maxWidth: '100%',
-            mb: 4,
-            px: { xs: 1.5, sm: 2, md: 3 }, // subtle inner padding only, no outer gutters
-            py: { xs: 1, sm: 2 },
-            borderRadius: 4,
-            boxShadow: theme => theme.palette.mode === 'dark' ? '0 10px 30px rgba(0,0,0,0.35)' : '0 10px 30px rgba(37, 99, 235, 0.10)',
-            bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(23,27,36, 0.8)' : 'rgba(255,255,255, 0.9)',
-            backdropFilter: 'saturate(140%) blur(8px)',
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            justifyContent: { xs: 'center', md: 'center' },
-            alignItems: { xs: 'center', md: 'stretch' },
-            gap: { xs: 2, md: 2 },
-            mx: 'auto',
-          }}>
-            {analytics.map((item, idx) => (
-              <Box key={item.label} sx={{ flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                <Card
+        <Box sx={{ 
+          width: '100%', 
+          display: 'flex', 
+          flexDirection: { xs: 'column', md: 'row' },
+          justifyContent: 'center',
+          alignItems: { xs: 'center', md: 'stretch' },
+          gap: { xs: 2, md: 2 },
+          mb: 4,
+          px: { xs: 1.5, sm: 2, md: 3 }
+        }}>
+          {analytics.map((item, idx) => (
+            <Box key={item.label} sx={{ flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+              <Card
                   elevation={theme.palette.mode === 'dark' ? 0 : 0}
                   sx={{
                     display: 'flex',
@@ -268,7 +262,7 @@ const Dashboard = () => {
                     p: 2,
                     height: '100%',
                     minHeight: 120,
-                    borderRadius: 3,
+                    borderRadius: 1,
                     transition: 'transform 0.22s cubic-bezier(.4,2,.6,1), box-shadow 0.22s cubic-bezier(.4,2,.6,1), background-color 0.2s ease',
                     width: '100%',
                     maxWidth: { xs: '100%', sm: 220 },
@@ -315,17 +309,16 @@ const Dashboard = () => {
                 </Card>
               </Box>
             ))}
-          </Box>
         </Box>
         {/* Charts Section */}
-        <Grid container spacing={3} sx={{ width: '100%', justifyContent: 'center' }}>
-          <Grid item xs={12} md={6} lg={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Grid container spacing={3} sx={{ width: '100%', justifyContent: 'center', maxWidth: '1400px', mx: 'auto' }}>
+          <Grid item xs={12} md={12} lg={12} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Card
               elevation={0}
               sx={{
                 p: { xs: 2, sm: 3 },
                 height: '100%',
-                borderRadius: 4,
+                borderRadius: 1,
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 width: '100%',
                 border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
@@ -359,13 +352,13 @@ const Dashboard = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6} lg={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Grid item xs={12} md={12} lg={12} sx={{ display: 'flex', justifyContent: 'center' }}>
             <Card
               elevation={0}
               sx={{
                 p: { xs: 2, sm: 3 },
                 height: '100%',
-                borderRadius: 4,
+                borderRadius: 1,
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 width: '100%',
                 border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
@@ -408,7 +401,7 @@ const Dashboard = () => {
               sx={{
                 p: { xs: 2, sm: 3 },
                 height: '100%',
-                borderRadius: 4,
+                borderRadius: 1,
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 width: '100%',
                 border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
