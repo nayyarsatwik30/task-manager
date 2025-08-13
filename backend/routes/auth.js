@@ -602,4 +602,82 @@ router.get('/verify-token', async (req, res) => {
   }
 });
 
-module.exports = router; 
+// Forgot password route
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required.' });
+  }
+
+  try {
+    const user = await User.findOne({ where: { email } });
+    
+    if (!user) {
+      // Don't reveal if email exists for security
+      return res.json({ success: true, message: 'If an account with that email exists, we have sent a password reset link.' });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+    // Save reset token to user
+    await user.update({
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: resetExpires
+    });
+
+    // Send password reset email
+    await sendPasswordResetEmail(user, resetToken);
+
+    res.json({ success: true, message: 'If an account with that email exists, we have sent a password reset link.' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
+  }
+});
+
+// Reset password route
+router.post('/reset-password', async (req, res) => {
+  const { token, email, newPassword } = req.body;
+  
+  if (!token || !email || !newPassword) {
+    return res.status(400).json({ success: false, message: 'Token, email, and new password are required.' });
+  }
+
+  try {
+    const user = await User.findOne({ 
+      where: { 
+        email,
+        resetPasswordToken: token,
+      } 
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset token.' });
+    }
+
+    // Check if token is expired
+    if (new Date() > user.resetPasswordExpires) {
+      return res.status(400).json({ success: false, message: 'Reset token has expired. Please request a new one.' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and clear reset token
+    await user.update({
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordExpires: null
+    });
+
+    res.json({ success: true, message: 'Password has been reset successfully. You can now log in with your new password.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
+  }
+});
+
+module.exports = router;

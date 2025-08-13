@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Grid, Paper, Typography, TextField, Button, Checkbox, FormControlLabel, Link, IconButton, InputAdornment, Divider } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useThemeMode } from './context/ThemeContext';
 import { useTheme } from '@mui/material';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
@@ -168,7 +168,7 @@ const Login = ({ setIsAuthenticated }) => {
                   control={<Checkbox checked={remember} onChange={e => setRemember(e.target.checked)} color="primary" />}
                   label="Remember Me"
                 />
-                <Link href="#" variant="body2" underline="hover" color="primary">
+                <Link component={RouterLink} to="/forgot-password" variant="body2" underline="hover" color="primary">
                   Forgot password?
                 </Link>
               </Box>

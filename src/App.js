@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-r
 import Login from './Login';
 import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import MainLayout from './layout/MainLayout';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -94,6 +96,8 @@ const AppContent = () => {
       <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
       <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
       <Route path="/verify-email" element={<VerifyEmail setIsAuthenticated={setIsAuthenticated} />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/*"
         element={
