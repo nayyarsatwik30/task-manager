@@ -16,6 +16,7 @@ import dayjs from 'dayjs';
 import { Tooltip as MuiTooltip } from '@mui/material';
 import { useTheme } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import WhatshotIcon from '@mui/icons-material/Whatshot';
 
 // Progress Ring Component
 const ProgressRing = ({ value, max, size = 80, strokeWidth = 6, color = '#1976d2' }) => {
@@ -131,6 +132,8 @@ const Dashboard = () => {
   const [motivationalMessage, setMotivationalMessage] = useState('');
   const [currentChartIndex, setCurrentChartIndex] = useState(0);
   const refreshTimeoutRef = useRef(null);
+  const [streak, setStreak] = useState({ current: 0, best: 0 });
+  const lastCelebratedRef = useRef(null);
 
   // Pull-to-refresh functionality
   const handleRefresh = async () => {
@@ -146,6 +149,87 @@ const Dashboard = () => {
   useEffect(() => {
     setGreeting(getTimeBasedGreeting());
     setMotivationalMessage(getMotivationalMessage(tasks));
+  }, [tasks]);
+
+  // Compute streaks from tasks (client-side)
+  useEffect(() => {
+    if (!tasks || tasks.length === 0) {
+      setStreak({ current: 0, best: 0 });
+      return;
+    }
+
+    // Collect unique completion dates (local) using updated_at when status is completed
+    const completedDates = new Set();
+    tasks.forEach(t => {
+      if (t.status === 'completed' && t.updated_at) {
+        const d = dayjs(t.updated_at).format('YYYY-MM-DD');
+        completedDates.add(d);
+      }
+    });
+
+    if (completedDates.size === 0) {
+      setStreak({ current: 0, best: 0 });
+      return;
+    }
+
+    // Helper to check if a date string exists in the set
+    const has = (d) => completedDates.has(dayjs(d).format('YYYY-MM-DD'));
+
+    // Current streak: count back from today
+    let cur = 0;
+    let cursor = dayjs();
+    while (has(cursor)) {
+      cur += 1;
+      cursor = cursor.subtract(1, 'day');
+    }
+
+    // Best streak: scan through sorted dates and count consecutive runs
+    const sorted = Array.from(completedDates).sort(); // asc YYYY-MM-DD
+    let best = 1;
+    let run = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = dayjs(sorted[i - 1]);
+      const curr = dayjs(sorted[i]);
+      if (curr.diff(prev, 'day') === 1) {
+        run += 1;
+      } else {
+        best = Math.max(best, run);
+        run = 1;
+      }
+    }
+    best = Math.max(best, run);
+
+    setStreak({ current: cur, best });
+
+    // Confetti on milestones (client-side persisted)
+    try {
+      const key = 'lastCelebratedStreak';
+      const lastCelebrated = parseInt(localStorage.getItem(key) || '0', 10);
+      lastCelebratedRef.current = lastCelebrated;
+      const milestones = [1, 3, 7, 14, 21, 30, 50, 75, 100, 150, 200];
+      const isMilestone = milestones.includes(cur);
+      const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (isMilestone && cur > lastCelebrated && !prefersReducedMotion) {
+        // Lazy-load confetti (works only if dependency exists, otherwise no-op)
+        import('canvas-confetti')
+          .then((mod) => {
+            const confetti = mod.default || mod;
+            confetti({
+              particleCount: 120,
+              spread: 80,
+              origin: { y: 0.2 },
+            });
+            // Update after a short delay to avoid double-fire on strict mode
+            setTimeout(() => localStorage.setItem(key, String(cur)), 300);
+          })
+          .catch(() => {
+            // If library not installed, silently ignore
+            localStorage.setItem(key, String(cur));
+          });
+      }
+    } catch (_) {
+      // Ignore storage access errors
+    }
   }, [tasks]);
 
   useEffect(() => {
@@ -319,6 +403,18 @@ const Dashboard = () => {
               <Stack direction="row" spacing={1.2} mt={2}>
                 <Chip color="default" label={`Today: ${dayjs().format('ddd, MMM D')}`} sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.25)' }} />
                 <Chip color="default" label={`Tasks: ${tasks.length}`} sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.25)' }} />
+                <MuiTooltip title={`Best: ${streak.best} day${streak.best === 1 ? '' : 's'}`} placement="bottom">
+                  <Chip
+                    icon={<WhatshotIcon sx={{ color: 'inherit' }} />}
+                    color="default"
+                    label={`Streak: ${streak.current} day${streak.current === 1 ? '' : 's'}`}
+                    sx={{
+                      color: 'white',
+                      bgcolor: streak.current > 0 ? 'rgba(255,128,64,0.35)' : 'rgba(255,255,255,0.18)',
+                      border: '1px solid rgba(255,255,255,0.25)'
+                    }}
+                  />
+                </MuiTooltip>
               </Stack>
             </Box>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={{ xs: 2, md: 0 }}>

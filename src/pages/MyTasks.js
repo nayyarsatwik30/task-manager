@@ -34,6 +34,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import dayjs from 'dayjs';
 import { useTasks } from '../hooks/useTasks';
 import TaskForm from '../components/TaskForm';
+import CelebrationOverlay from '../components/CelebrationOverlay';
 
 const priorities = [
   { value: 'high', color: 'error', label: 'High' },
@@ -84,6 +85,9 @@ const MyTasks = () => {
     clearError
   } = useTasks();
 
+  // Theme must be used before any early returns to comply with React hooks rules
+  const theme = useTheme();
+
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
@@ -93,6 +97,7 @@ const MyTasks = () => {
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [addTaskTitle, setAddTaskTitle] = useState('');
+  const [celebrationOpen, setCelebrationOpen] = useState(false);
 
   const handleAddTask = () => {
     // If there's text in the input, use it as the title
@@ -133,12 +138,18 @@ const MyTasks = () => {
 
   const handleFormSubmit = async (taskData) => {
     try {
+      const isCompleting = editingTask
+        ? (editingTask.status !== 'completed' && taskData.status === 'completed')
+        : (taskData.status === 'completed');
       if (editingTask) {
         await updateTask(editingTask.id, taskData);
         setSnackbar({ open: true, message: 'Task updated successfully!', severity: 'success' });
       } else {
         await createTask(taskData);
         setSnackbar({ open: true, message: 'Task created successfully!', severity: 'success' });
+      }
+      if (isCompleting) {
+        setCelebrationOpen(true);
       }
       setAddTaskTitle('');
       setFormOpen(false); // Close the modal after successful submission
@@ -212,7 +223,7 @@ const MyTasks = () => {
     );
   }
 
-  const theme = useTheme();
+  // moved above
 
   return (
     <Box sx={{
@@ -743,6 +754,13 @@ const MyTasks = () => {
           onClose={handleCloseSnackbar}
           message={snackbar.message}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        />
+        <CelebrationOverlay
+          open={celebrationOpen}
+          onClose={() => setCelebrationOpen(false)}
+          headline="Well done!"
+          subcopy="Task completed"
+          duration={1500}
         />
       </Container>
     </Box>
