@@ -187,6 +187,25 @@ const MyTasks = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  // Toggle task completion status via the check icon
+  const handleToggleComplete = async (task) => {
+    const isCompleting = task.status !== 'completed';
+    const newStatus = isCompleting ? 'completed' : 'pending';
+    try {
+      await updateTask(task.id, { status: newStatus });
+      setSnackbar({
+        open: true,
+        message: isCompleting ? 'Task marked as completed' : 'Task marked as pending',
+        severity: 'success'
+      });
+      if (isCompleting) {
+        setCelebrationOpen(true);
+      }
+    } catch (err) {
+      setSnackbar({ open: true, message: err.message || 'Failed to update task', severity: 'error' });
+    }
+  };
+
   const { todayTasks, upcomingTasks, completedTasks } = groupTasks(tasks);
 
   // Filter tasks based on current filter
@@ -459,7 +478,9 @@ const MyTasks = () => {
                             </Box>
                           }
                         >
-                          <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
+                          <IconButton aria-label={task.status === 'completed' ? 'mark as pending' : 'mark as completed'} onClick={() => handleToggleComplete(task)} sx={{ mr: 1.5, mt: 0.5 }}>
+                            <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400' }} />
+                          </IconButton>
                           <ListItemText
                             primary={
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -547,7 +568,9 @@ const MyTasks = () => {
                           </Box>
                         }
                       >
-                        <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
+                        <IconButton aria-label={task.status === 'completed' ? 'mark as pending' : 'mark as completed'} onClick={() => handleToggleComplete(task)} sx={{ mr: 1.5, mt: 0.5 }}>
+                          <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400' }} />
+                        </IconButton>
                         <ListItemText
                           primary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -620,9 +643,7 @@ const MyTasks = () => {
                         alignItems="flex-start"
                         secondaryAction={
                           <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1 }}>
-                            <IconButton edge="end" aria-label="edit" onClick={() => handleEditTask(task)}>
-                              <EditIcon />
-                            </IconButton>
+                            {/* Edit disabled for completed tasks */}
                             <IconButton
                               edge="end"
                               aria-label="delete"
@@ -634,7 +655,9 @@ const MyTasks = () => {
                           </Box>
                         }
                       >
-                        <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400', mr: 2, mt: 0.5 }} />
+                        <IconButton aria-label={task.status === 'completed' ? 'mark as pending' : 'mark as completed'} onClick={() => handleToggleComplete(task)} sx={{ mr: 1.5, mt: 0.5 }}>
+                          <CheckCircleIcon sx={{ color: task.status === 'completed' ? 'success.main' : 'grey.400' }} />
+                        </IconButton>
                         <ListItemText
                           primary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -671,9 +694,7 @@ const MyTasks = () => {
                               </Typography>
                               {/* Mobile actions */}
                               <Box sx={{ display: { xs: 'flex', sm: 'none' }, gap: 1, mt: 1 }}>
-                                <IconButton size="small" aria-label="edit" onClick={() => handleEditTask(task)}>
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
+                                {/* Edit disabled for completed tasks (mobile) */}
                                 <IconButton
                                   size="small"
                                   aria-label="delete"

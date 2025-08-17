@@ -1,5 +1,5 @@
 // src/components/Header.js - Sticky AppBar (Header) with theme toggle and avatar menu
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Avatar, Menu, MenuItem, Tooltip, Box, Fade, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
@@ -17,15 +17,10 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [avatarSrc, setAvatarSrc] = useState(() => localStorage.getItem('userAvatar') || '');
   const navigate = useNavigate();
 
-  // Calculate dynamic margin and width based on sidebar state
-  let marginLeft = 0;
-  let width = '100%';
-  if (!isMobile) {
-    marginLeft = collapsed ? '64px' : '240px';
-    width = collapsed ? 'calc(100% - 64px)' : 'calc(100% - 240px)';
-  }
+  // Layout margins are handled by the content container; header shouldn't add its own offsets
 
   const handleMenu = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -43,6 +38,18 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
   const handleLogoutCancel = () => {
     setLogoutOpen(false);
   };
+
+  // Keep header avatar in sync with profile updates
+  useEffect(() => {
+    const updateFromStorage = () => setAvatarSrc(localStorage.getItem('userAvatar') || '');
+    const onCustom = () => updateFromStorage();
+    window.addEventListener('storage', updateFromStorage);
+    window.addEventListener('avatar-updated', onCustom);
+    return () => {
+      window.removeEventListener('storage', updateFromStorage);
+      window.removeEventListener('avatar-updated', onCustom);
+    };
+  }, []);
 
   return (
     <AppBar 
@@ -72,9 +79,7 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
               <MenuIcon />
             </IconButton>
           )}
-          <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 700, fontSize: { xs: '1.05rem', sm: '1.15rem' }, letterSpacing: 1 }}>
-            Task Manager
-          </Typography>
+          {/* App title moved to Sidebar; header text removed */}
         </Box>
         {/* Right side: theme toggle, avatar, menu */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -100,7 +105,7 @@ const Header = ({ onMobileMenuClick, sx, handleLogout, isMobile, collapsed, setC
                 '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
               }}
             >
-              <Avatar alt="User" src="" />
+              <Avatar alt="User" src={avatarSrc || ''} />
             </IconButton>
           </Tooltip>
           <Menu

@@ -182,7 +182,6 @@ const TaskForm = ({ open, onClose, onSubmit, initialData, mode }) => {
                 >
                   <MenuItem value="pending">Pending</MenuItem>
                   <MenuItem value="in-progress">In Progress</MenuItem>
-                  <MenuItem value="completed">Completed</MenuItem>
                 </Select>
               </FormControl>
               

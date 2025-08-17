@@ -10,6 +10,9 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartTooltip, ResponsiveContainer } from 'recharts';
 import { useTasks } from '../hooks/useTasks';
 import dayjs from 'dayjs';
@@ -20,10 +23,16 @@ import WhatshotIcon from '@mui/icons-material/Whatshot';
 
 // Progress Ring Component
 const ProgressRing = ({ value, max, size = 80, strokeWidth = 6, color = '#1976d2' }) => {
+  const theme = useTheme();
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = max > 0 ? (value / max) * 100 : 0;
   const strokeDasharray = `${(progress / 100) * circumference} ${circumference}`;
+  
+  // Theme-aware background stroke color
+  const backgroundStroke = theme.palette.mode === 'dark' 
+    ? 'rgba(255,255,255,0.1)' 
+    : 'rgba(0,0,0,0.08)';
   
   return (
     <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -32,7 +41,7 @@ const ProgressRing = ({ value, max, size = 80, strokeWidth = 6, color = '#1976d2
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255,255,255,0.1)"
+          stroke={backgroundStroke}
           strokeWidth={strokeWidth}
           fill="transparent"
         />
@@ -120,7 +129,8 @@ const Dashboard = () => {
   const { tasks, loading, error } = useTasks();
   const theme = useTheme();
   const navigate = useNavigate();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+  const [currentChartIndex, setCurrentChartIndex] = useState(0);
   const [analytics, setAnalytics] = useState([]);
   const [chartData, setChartData] = useState({
     lineData: [],
@@ -130,7 +140,6 @@ const Dashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [greeting, setGreeting] = useState('');
   const [motivationalMessage, setMotivationalMessage] = useState('');
-  const [currentChartIndex, setCurrentChartIndex] = useState(0);
   const refreshTimeoutRef = useRef(null);
   const [streak, setStreak] = useState({ current: 0, best: 0 });
   const lastCelebratedRef = useRef(null);
@@ -268,6 +277,61 @@ const Dashboard = () => {
         });
       }
 
+      // Compute WoW deltas and micro-trends
+      const sum = (arr) => arr.reduce((a, b) => a + b, 0);
+      // Previous 7 days for completed
+      const prev7CompletedCounts = [];
+      for (let i = 13; i >= 7; i--) {
+        const date = dayjs().subtract(i, 'day');
+        const cnt = tasks.filter(t => t.status === 'completed' && t.updated_at && dayjs(t.updated_at).isSame(date, 'day')).length;
+        prev7CompletedCounts.push(cnt);
+      }
+      const last7CompletedCounts = last7Days.map(d => d.completed);
+      const completedWoW = (() => {
+        const prev = sum(prev7CompletedCounts);
+        const curr = sum(last7CompletedCounts);
+        if (prev === 0) return curr > 0 ? 100 : 0;
+        return Math.round(((curr - prev) / prev) * 100);
+      })();
+
+      // Created tasks 7-day trend if created_at exists
+      const hasCreatedAt = tasks.some(t => !!t.created_at);
+      const last7Created = [];
+      const prev7Created = [];
+      if (hasCreatedAt) {
+        for (let i = 6; i >= 0; i--) {
+          const date = dayjs().subtract(i, 'day');
+          const cnt = tasks.filter(t => t.created_at && dayjs(t.created_at).isSame(date, 'day')).length;
+          last7Created.push(cnt);
+        }
+        for (let i = 13; i >= 7; i--) {
+          const date = dayjs().subtract(i, 'day');
+          const cnt = tasks.filter(t => t.created_at && dayjs(t.created_at).isSame(date, 'day')).length;
+          prev7Created.push(cnt);
+        }
+      }
+      const totalWoW = hasCreatedAt ? (() => {
+        const prev = sum(prev7Created);
+        const curr = sum(last7Created);
+        if (prev === 0) return curr > 0 ? 100 : 0;
+        return Math.round(((curr - prev) / prev) * 100);
+      })() : null;
+
+      // Pending WoW approximation: compare pending snapshot today vs 7 days ago if created_at/updated_at available
+      // Fallback: use difference between pending today and average pending added in last7Created (best-effort)
+      const pendingWoW = (() => {
+        if (!hasCreatedAt) return null;
+        // Approximation using created counts: more created than completed tends to increase pending
+        const createdCurr = sum(last7Created);
+        const completedCurr = sum(last7CompletedCounts);
+        const createdPrev = sum(prev7Created);
+        const completedPrev = sum(prev7CompletedCounts);
+        const deltaPrev = createdPrev - completedPrev;
+        const deltaCurr = createdCurr - completedCurr;
+        if (deltaPrev === 0) return deltaCurr !== 0 ? (deltaCurr > 0 ? 100 : -100) : 0;
+        return Math.round(((deltaCurr - deltaPrev) / Math.abs(deltaPrev)) * 100);
+      })();
+
       // Calculate status distribution for bar chart
       const statusData = [
         { category: 'Pending', tasks: pendingTasks },
@@ -281,20 +345,28 @@ const Dashboard = () => {
           label: 'Total Tasks',
           value: totalTasks,
           icon: <AssignmentTurnedInIcon color="primary" />,
-          color: 'primary.main'
+          color: 'primary.main',
+          sparkData: hasCreatedAt ? last7Created.map((v, idx) => ({ i: idx, v })) : undefined,
+          delta: totalWoW,
+          deltaLabel: totalWoW === null ? undefined : `${totalWoW >= 0 ? '+' : ''}${totalWoW}% WoW`
         },
         {
           label: 'Tasks Completed',
           value: completedTasks,
           icon: <CheckCircleIcon color="success" />,
           color: 'success.main',
-          progress: completionRate
+          max: totalTasks,
+          sparkData: last7CompletedCounts.map((v, idx) => ({ i: idx, v })),
+          delta: completedWoW,
+          deltaLabel: `${completedWoW >= 0 ? '+' : ''}${completedWoW}% WoW`
         },
         {
           label: 'Pending Tasks',
           value: pendingTasks,
           icon: <PendingActionsIcon color="warning" />,
-          color: 'warning.main'
+          color: 'warning.main',
+          delta: pendingWoW,
+          deltaLabel: pendingWoW === null ? undefined : `${pendingWoW >= 0 ? '+' : ''}${pendingWoW}% WoW`
         },
         {
           label: 'Tasks Due Today',
@@ -467,127 +539,382 @@ const Dashboard = () => {
           </Card>
         )}
         {/* Analytics Cards Section */}
-        <Box sx={{ 
-          width: '100%', 
-          display: 'flex', 
-          flexDirection: { xs: 'column', md: 'row' },
-          justifyContent: 'center',
-          alignItems: { xs: 'center', md: 'stretch' },
-          gap: { xs: 2, md: 2 },
-          mb: 4,
-          px: { xs: 1.5, sm: 2, md: 3 }
-        }}>
-          {analytics.map((item, idx) => (
-            <Box key={item.label} sx={{ flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-              <Card
-                  elevation={theme.palette.mode === 'dark' ? 0 : 0}
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, mb: 3 }}>
+          <Grid container spacing={2.5} justifyContent="center">
+            {analytics.map((item) => (
+              <Grid key={item.label} item xs={12} sm={6} lg={3}>
+                <Card
+                  elevation={0}
                   sx={{
+                    p: 3,
+                    height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    p: 2,
-                    height: '100%',
-                    minHeight: 120,
-                    borderRadius: 1,
-                    transition: 'transform 0.22s cubic-bezier(.4,2,.6,1), box-shadow 0.22s cubic-bezier(.4,2,.6,1), background-color 0.2s ease',
-                    width: '100%',
-                    maxWidth: { xs: '100%', sm: 220 },
-                    boxShadow: theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 4px 18px rgba(0,0,0,0.08)',
-                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
-                    border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
+                    borderRadius: 4,
+                    border: theme => theme.palette.mode === 'dark' 
+                      ? '1px solid rgba(255,255,255,0.12)' 
+                      : '1px solid rgba(0,0,0,0.08)',
+                    boxShadow: theme => theme.palette.mode === 'dark' 
+                      ? '0 4px 24px rgba(0,0,0,0.4)' 
+                      : '0 2px 16px rgba(0,0,0,0.06)',
+                    bgcolor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255,255,255,0.08)' 
+                      : '#ffffff',
+                    backdropFilter: 'blur(10px)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 3,
+                      background: `linear-gradient(90deg, ${item.color}, ${item.color}88)`,
+                      opacity: 0.8
+                    },
                     '&:hover': {
-                      transform: 'translateY(-6px) scale(1.025)',
-                      boxShadow: theme.palette.mode === 'dark' ? '0 16px 40px rgba(0,0,0,0.45)' : '0 14px 30px rgba(37, 99, 235, 0.18)',
-                      bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#fafbfc',
+                      transform: 'translateY(-4px)',
+                      boxShadow: theme => theme.palette.mode === 'dark'
+                        ? '0 8px 40px rgba(0,0,0,0.5)'
+                        : '0 8px 32px rgba(0,0,0,0.12)',
+                      '&::before': {
+                        height: 4,
+                        opacity: 1
+                      }
                     }
                   }}
                 >
-                  <Avatar sx={{ bgcolor: item.color, mb: 1, width: 40, height: 40, boxShadow: 1 }}>{item.icon}</Avatar>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom align="center" sx={{ fontSize: 13 }}>{item.label}</Typography>
-                  <Box sx={{ mb: 1 }}>
-                    <ProgressRing 
-                      value={item.value} 
-                      max={item.max || Math.max(item.value * 1.5, 10)} 
-                      size={70} 
-                      strokeWidth={5}
-                      color={item.color}
-                    />
-                  </Box>
-                  {item.progress !== undefined && (
-                    <Box mt={0.5} sx={{ width: '100%' }}>
-                      <LinearProgress
-                        variant="determinate"
-                        value={item.progress}
-                        sx={{
-                          height: 6,
-                          borderRadius: 4,
-                          bgcolor: 'rgba(25, 118, 210, 0.1)',
-                          '& .MuiLinearProgress-bar': {
-                            borderRadius: 4,
-                          }
+                  <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 2.5 }}>
+                    <Box sx={{ flex: 1, mr: 2 }}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontWeight: 500,
+                          color: 'text.secondary',
+                          fontSize: '0.8rem',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          mb: 0.5
                         }}
-                      />
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', textAlign: 'center', fontSize: 11 }}>
-                        {item.progress}% completed
+                      >
+                        {item.label}
+                      </Typography>
+                      <Typography 
+                        variant="h4" 
+                        sx={{ 
+                          fontWeight: 700,
+                          color: 'text.primary',
+                          fontSize: '2rem',
+                          lineHeight: 1.2
+                        }}
+                      >
+                        {item.value}
                       </Typography>
                     </Box>
-                  )}
-                  {item.label === 'Pending Tasks' && (
-                    <Chip
-                      label="In Progress"
-                      color="warning"
-                      size="small"
-                      sx={{ mt: 1, fontWeight: 600, fontSize: 11 }}
-                    />
-                  )}
+                    <Box 
+                      sx={{ 
+                        width: 48,
+                        height: 48,
+                        borderRadius: 3,
+                        bgcolor: `${item.color}15`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      {item.icon && React.cloneElement(item.icon, { 
+                        sx: { 
+                          fontSize: 24, 
+                          color: item.color 
+                        } 
+                      })}
+                    </Box>
+                  </Stack>
+                  <Box sx={{ mt: 'auto' }}>
+                    {item.deltaLabel && (
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        gap: 1,
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: theme => theme.palette.mode === 'dark' 
+                          ? 'rgba(255,255,255,0.05)' 
+                          : 'rgba(0,0,0,0.02)'
+                      }}>
+                        <Chip
+                          label={item.deltaLabel}
+                          size="small"
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '0.75rem',
+                            height: 24,
+                            bgcolor: (item.delta ?? 0) >= 0 ? '#4caf5015' : '#f4433615',
+                            color: (item.delta ?? 0) >= 0 ? '#4caf50' : '#f44336',
+                            border: (item.delta ?? 0) >= 0 ? '1px solid #4caf5030' : '1px solid #f4433630'
+                          }}
+                        />
+                        <Typography 
+                          variant="caption" 
+                          color="text.secondary"
+                          sx={{ fontSize: '0.75rem' }}
+                        >
+                          vs last week
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
                 </Card>
-              </Box>
+              </Grid>
             ))}
-        </Box>
-        {/* Charts Section */}
-        {isMobile ? (
-          <Box sx={{ width: '100%', maxWidth: '1400px', mx: 'auto', mb: 4 }}>
-            <Typography variant="h5" fontWeight={600} mb={2} textAlign="center" color="primary">
-              Analytics Charts
-            </Typography>
-            
-            {/* Mobile Chart Navigation */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-              <IconButton 
-                onClick={() => setCurrentChartIndex(prev => prev > 0 ? prev - 1 : 2)}
-                sx={{ 
-                  bgcolor: 'primary.main', 
-                  color: 'white',
-                  '&:hover': { bgcolor: 'primary.dark' },
-                  mr: 2
-                }}
-              >
-                <ArrowBackIosIcon />
-              </IconButton>
-              
-              <Tabs 
-                value={currentChartIndex} 
-                onChange={(e, newValue) => setCurrentChartIndex(newValue)}
-                variant="fullWidth"
-                sx={{ minWidth: 200 }}
-              >
-                <Tab label="Completion" />
-                <Tab label="Priority" />
-                <Tab label="Status" />
-              </Tabs>
-              
-              <IconButton 
-                onClick={() => setCurrentChartIndex(prev => prev < 2 ? prev + 1 : 0)}
-                sx={{ 
-                  bgcolor: 'primary.main', 
-                  color: 'white',
-                  '&:hover': { bgcolor: 'primary.dark' },
-                  ml: 2
-                }}
-              >
-                <ArrowForwardIosIcon />
-              </IconButton>
+          </Grid>
+        </Container>
+        {/* Quick Insights */}
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, mb: 3 }}>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              fontWeight: 700, 
+              mb: 3, 
+              color: 'text.primary',
+              textAlign: { xs: 'center', md: 'left' }
+            }}
+          >
+            Quick Insights
+          </Typography>
+          <Grid container spacing={3} justifyContent="center">
+            {(() => {
+              // Compute insights
+              const now = dayjs();
+              const next24 = now.add(24, 'hour');
+              const tasksDueNext24 = tasks.filter(t => t.due_date && dayjs(t.due_date).isAfter(now) && dayjs(t.due_date).isBefore(next24) && t.status !== 'completed');
+              const overdueHigh = tasks.filter(t => t.due_date && dayjs(t.due_date).isBefore(now) && t.status !== 'completed' && t.priority === 'high');
+              const hours = new Array(24).fill(0);
+              tasks.forEach(t => {
+                if (t.status === 'completed' && t.updated_at) {
+                  const h = dayjs(t.updated_at).hour();
+                  hours[h] += 1;
+                }
+              });
+              const bestHourIdx = hours.reduce((best, val, idx, arr) => (val > arr[best] ? idx : best), 0);
+              const bestHourLabel = `${String(bestHourIdx).padStart(2, '0')}:00`;
+
+              const items = [
+                {
+                  title: 'Tasks due in next 24h',
+                  value: tasksDueNext24.length,
+                  color: 'info',
+                  desc: tasksDueNext24.length > 0 ? `${tasksDueNext24.length} task(s) approaching deadline` : 'All clear for the next 24h',
+                },
+                {
+                  title: 'Overdue high‑priority',
+                  value: overdueHigh.length,
+                  color: 'error',
+                  desc: overdueHigh.length > 0 ? 'Tackle these first' : 'No critical overdue tasks',
+                },
+                {
+                  title: 'Best productivity hour',
+                  value: bestHourLabel,
+                  color: 'success',
+                  desc: hours[bestHourIdx] > 0 ? `${hours[bestHourIdx]} completion(s) historically` : 'No pattern yet — keep completing!',
+                },
+              ];
+              return items.map((ins) => (
+                <Grid key={ins.title} item xs={12} sm={6} lg={4}>
+                  <Card
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      borderRadius: 4,
+                      border: theme => theme.palette.mode === 'dark' 
+                        ? '1px solid rgba(255,255,255,0.12)' 
+                        : '1px solid rgba(0,0,0,0.08)',
+                      boxShadow: theme => theme.palette.mode === 'dark' 
+                        ? '0 4px 24px rgba(0,0,0,0.4)' 
+                        : '0 2px 16px rgba(0,0,0,0.06)',
+                      bgcolor: theme => theme.palette.mode === 'dark' 
+                        ? 'rgba(255,255,255,0.08)' 
+                        : '#ffffff',
+                      backdropFilter: 'blur(10px)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: 3,
+                        background: `linear-gradient(90deg, ${theme.palette[ins.color]?.main || '#1976d2'}, ${theme.palette[ins.color]?.main || '#1976d2'}88)`,
+                        opacity: 0.8
+                      },
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: theme => theme.palette.mode === 'dark'
+                          ? '0 8px 40px rgba(0,0,0,0.5)'
+                          : '0 8px 32px rgba(0,0,0,0.12)',
+                        '&::before': {
+                          height: 4,
+                          opacity: 1
+                        }
+                      }
+                    }}
+                  >
+                    <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 2.5 }}>
+                      <Box sx={{ flex: 1, mr: 2 }}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontWeight: 500,
+                            color: 'text.secondary',
+                            fontSize: '0.8rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            mb: 0.5
+                          }}
+                        >
+                          {ins.title}
+                        </Typography>
+                        <Typography 
+                          variant="h4" 
+                          sx={{ 
+                            fontWeight: 700,
+                            color: 'text.primary',
+                            fontSize: '2rem',
+                            lineHeight: 1.2
+                          }}
+                        >
+                          {ins.value}
+                        </Typography>
+                      </Box>
+                      <Box 
+                        sx={{ 
+                          width: 48,
+                          height: 48,
+                          borderRadius: 3,
+                          bgcolor: `${theme.palette[ins.color]?.main || '#1976d2'}15`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        {ins.color === 'info' && <AccessTimeIcon sx={{ fontSize: 24, color: theme.palette.info.main }} />}
+                        {ins.color === 'error' && <PriorityHighIcon sx={{ fontSize: 24, color: theme.palette.error.main }} />}
+                        {ins.color === 'success' && <TrendingUpIcon sx={{ fontSize: 24, color: theme.palette.success.main }} />}
+                      </Box>
+                    </Stack>
+                    <Box sx={{ mt: 'auto' }}>
+                      <Box sx={{ 
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: theme => theme.palette.mode === 'dark' 
+                          ? 'rgba(255,255,255,0.05)' 
+                          : 'rgba(0,0,0,0.02)'
+                      }}>
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary"
+                          sx={{ 
+                            fontSize: '0.875rem',
+                            lineHeight: 1.4,
+                            fontWeight: 500
+                          }}
+                        >
+                          {ins.desc}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Card>
+                </Grid>
+              ));
+            })()}
+          </Grid>
+        </Container>
+        {/* Analytics Charts */}
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, mb: 2 }}>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              fontWeight: 700, 
+              mb: 2, 
+              color: 'text.primary',
+              textAlign: { xs: 'center', md: 'left' }
+            }}
+          >
+            Analytics Overview
+          </Typography>
+          <Box sx={{ width: '100%' }}>
+            {/* Chart Navigation - Always visible */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              mb: 2,
+              width: '100%'
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                maxWidth: 600,
+                mx: 'auto'
+              }}>
+                <IconButton 
+                  onClick={() => setCurrentChartIndex(prev => prev > 0 ? prev - 1 : 2)}
+                  sx={{ 
+                    bgcolor: 'primary.main', 
+                    color: 'white',
+                    '&:hover': { bgcolor: 'primary.dark' },
+                    mr: 2,
+                    width: 48,
+                    height: 48
+                  }}
+                >
+                  <ArrowBackIosIcon />
+                </IconButton>
+                
+                <Tabs 
+                  value={currentChartIndex} 
+                  onChange={(e, newValue) => setCurrentChartIndex(newValue)}
+                  variant="fullWidth"
+                  sx={{ 
+                    minWidth: { xs: 200, sm: 300, md: 400 },
+                    '& .MuiTab-root': {
+                      fontWeight: 600,
+                      fontSize: '1rem'
+                    },
+                    '& .MuiTabs-flexContainer': {
+                      justifyContent: 'center'
+                    }
+                  }}
+                >
+                  <Tab label="Completion" />
+                  <Tab label="Priority" />
+                  <Tab label="Status" />
+                </Tabs>
+                
+                <IconButton 
+                  onClick={() => setCurrentChartIndex(prev => prev < 2 ? prev + 1 : 0)}
+                  sx={{ 
+                    bgcolor: 'primary.main', 
+                    color: 'white',
+                    '&:hover': { bgcolor: 'primary.dark' },
+                    ml: 2,
+                    width: 48,
+                    height: 48
+                  }}
+                >
+                  <ArrowForwardIosIcon />
+                </IconButton>
+              </Box>
             </Box>
 
             {/* Chart Display */}
@@ -597,17 +924,23 @@ const Dashboard = () => {
                 <Card
                   elevation={0}
                   sx={{
-                    p: { xs: 2, sm: 3 },
-                    borderRadius: 1,
-                    border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
-                    boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
-                    bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
+                    p: 4,
+                    borderRadius: 3,
+                    border: theme => theme.palette.mode === 'dark' 
+                      ? '1px solid rgba(255,255,255,0.08)' 
+                      : '1px solid rgba(0,0,0,0.06)',
+                    boxShadow: theme => theme.palette.mode === 'dark' 
+                      ? '0 8px 32px rgba(0,0,0,0.3)' 
+                      : '0 4px 20px rgba(0,0,0,0.08)',
+                    bgcolor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255,255,255,0.05)' 
+                      : '#ffffff',
                   }}
                 >
                   <Typography variant="h6" fontWeight={600} mb={3} color="primary">
                     Task Completion (7 days)
                   </Typography>
-                  <ResponsiveContainer width="100%" height={250}>
+                  <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={chartData.lineData}>
                       <XAxis dataKey="day" />
                       <YAxis allowDecimals={false} />
@@ -616,8 +949,8 @@ const Dashboard = () => {
                         dataKey="completed"
                         stroke="#1976d2"
                         strokeWidth={3}
-                        dot={{ r: 7, fill: '#1976d2', stroke: '#fff', strokeWidth: 2 }}
-                        activeDot={{ r: 10, stroke: '#1976d2', strokeWidth: 3, fill: '#fff' }}
+                        dot={{ r: 6, fill: '#1976d2', stroke: '#fff', strokeWidth: 2 }}
+                        activeDot={{ r: 8, stroke: '#1976d2', strokeWidth: 2, fill: '#fff' }}
                       />
                       <RechartTooltip content={<CustomTooltip />} />
                     </LineChart>
@@ -630,17 +963,23 @@ const Dashboard = () => {
                 <Card
                   elevation={0}
                   sx={{
-                    p: { xs: 2, sm: 3 },
-                    borderRadius: 1,
-                    border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
-                    boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
-                    bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
+                    p: 4,
+                    borderRadius: 3,
+                    border: theme => theme.palette.mode === 'dark' 
+                      ? '1px solid rgba(255,255,255,0.08)' 
+                      : '1px solid rgba(0,0,0,0.06)',
+                    boxShadow: theme => theme.palette.mode === 'dark' 
+                      ? '0 8px 32px rgba(0,0,0,0.3)' 
+                      : '0 4px 20px rgba(0,0,0,0.08)',
+                    bgcolor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255,255,255,0.05)' 
+                      : '#ffffff',
                   }}
                 >
                   <Typography variant="h6" fontWeight={600} mb={3} color="primary">
                     Tasks by Priority
                   </Typography>
-                  <ResponsiveContainer width="100%" height={250}>
+                  <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
                         data={chartData.pieData}
@@ -648,7 +987,7 @@ const Dashboard = () => {
                         nameKey="name"
                         cx="50%"
                         cy="45%"
-                        outerRadius={80}
+                        outerRadius={100}
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       >
                         {chartData.pieData.map((entry, idx) => (
@@ -666,25 +1005,31 @@ const Dashboard = () => {
                 <Card
                   elevation={0}
                   sx={{
-                    p: { xs: 2, sm: 3 },
-                    borderRadius: 1,
-                    border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
-                    boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
-                    bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
+                    p: 4,
+                    borderRadius: 3,
+                    border: theme => theme.palette.mode === 'dark' 
+                      ? '1px solid rgba(255,255,255,0.08)' 
+                      : '1px solid rgba(0,0,0,0.06)',
+                    boxShadow: theme => theme.palette.mode === 'dark' 
+                      ? '0 8px 32px rgba(0,0,0,0.3)' 
+                      : '0 4px 20px rgba(0,0,0,0.08)',
+                    bgcolor: theme => theme.palette.mode === 'dark' 
+                      ? 'rgba(255,255,255,0.05)' 
+                      : '#ffffff',
                   }}
                 >
                   <Typography variant="h6" fontWeight={600} mb={3} color="primary">
                     Tasks by Status
                   </Typography>
-                  <ResponsiveContainer width="100%" height={250}>
+                  <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={chartData.barData}>
                       <XAxis dataKey="category" />
                       <YAxis allowDecimals={false} />
                       <Bar
                         dataKey="tasks"
                         fill="#9c27b0"
-                        radius={[12, 12, 0, 0]}
-                        barSize={44}
+                        radius={[8, 8, 0, 0]}
+                        barSize={50}
                       />
                       <RechartTooltip content={<CustomTooltip />} />
                     </BarChart>
@@ -693,130 +1038,7 @@ const Dashboard = () => {
               )}
             </Box>
           </Box>
-        ) : (
-          <Grid container spacing={3} sx={{ width: '100%', justifyContent: 'center', maxWidth: '1400px', mx: 'auto' }}>
-          <Grid item xs={12} md={12} lg={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Card
-              elevation={0}
-              sx={{
-                p: { xs: 2, sm: 3 },
-                height: '100%',
-                borderRadius: 1,
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                width: '100%',
-                border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
-                boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
-                bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
-                '&:hover': {
-                  transform: 'translateY(-4px) scale(1.02)',
-                  boxShadow: theme => theme.palette.mode === 'dark' ? '0 16px 40px rgba(0,0,0,0.45)' : '0 14px 30px rgba(37, 99, 235, 0.18)',
-                  bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'grey.50',
-                }
-              }}
-            >
-              <Typography variant="h6" fontWeight={600} mb={3} color="primary">
-                Task Completion (7 days)
-              </Typography>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={chartData.lineData}>
-                  <XAxis dataKey="day" />
-                  <YAxis allowDecimals={false} />
-                  <Line
-                    type="monotone"
-                    dataKey="completed"
-                    stroke="#1976d2"
-                    strokeWidth={3}
-                    dot={{ r: 7, fill: '#1976d2', stroke: '#fff', strokeWidth: 2 }}
-                    activeDot={{ r: 10, stroke: '#1976d2', strokeWidth: 3, fill: '#fff' }}
-                  />
-                  <RechartTooltip content={<CustomTooltip />} />
-                </LineChart>
-              </ResponsiveContainer>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={12} lg={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Card
-              elevation={0}
-              sx={{
-                p: { xs: 2, sm: 3 },
-                height: '100%',
-                borderRadius: 1,
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                width: '100%',
-                border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
-                boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
-                bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
-                '&:hover': {
-                  transform: 'translateY(-4px) scale(1.02)',
-                  boxShadow: theme => theme.palette.mode === 'dark' ? '0 16px 40px rgba(0,0,0,0.45)' : '0 14px 30px rgba(37, 99, 235, 0.18)',
-                  bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'grey.50',
-                }
-              }}
-            >
-              <Typography variant="h6" fontWeight={600} mb={3} color="primary">
-                Tasks by Priority
-              </Typography>
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={chartData.pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="45%"
-                    outerRadius={80}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {chartData.pieData.map((entry, idx) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartTooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={12} lg={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Card
-              elevation={0}
-              sx={{
-                p: { xs: 2, sm: 3 },
-                height: '100%',
-                borderRadius: 1,
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                width: '100%',
-                border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid #eef1f6',
-                boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.35)' : '0 6px 18px rgba(0,0,0,0.08)',
-                bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#fff',
-                '&:hover': {
-                  transform: 'translateY(-4px) scale(1.02)',
-                  boxShadow: theme => theme.palette.mode === 'dark' ? '0 16px 40px rgba(0,0,0,0.45)' : '0 14px 30px rgba(37, 99, 235, 0.18)',
-                  bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'grey.50',
-                }
-              }}
-            >
-              <Typography variant="h6" fontWeight={600} mb={3} color="primary">
-                Tasks by Status
-              </Typography>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={chartData.barData}>
-                  <XAxis dataKey="category" />
-                  <YAxis allowDecimals={false} />
-                  <Bar
-                    dataKey="tasks"
-                    fill="#9c27b0"
-                    radius={[12, 12, 0, 0]}
-                    barSize={44}
-                  />
-                  <RechartTooltip content={<CustomTooltip />} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </Grid>
-        </Grid>
-        )}
+        </Container>
       </Container>
     </Box>
   );

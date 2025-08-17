@@ -11,7 +11,10 @@ UserPreference.belongsTo(User, { foreignKey: 'user_id' });
 User.hasOne(UserPreference, { foreignKey: 'user_id' });
 
 const syncModels = async () => {
-  await sequelize.sync({ alter: true }); // { alter: true } for dev, { force: true } to drop and recreate
+  // Avoid auto-alter in normal runs to prevent duplicate index creation.
+  // Use migrations for schema changes, or set ALTER_SYNC=true in env if you want a one-off alter.
+  const doAlter = process.env.ALTER_SYNC === 'true';
+  await sequelize.sync(doAlter ? { alter: true } : undefined);
 };
 
 module.exports = {

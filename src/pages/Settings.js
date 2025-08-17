@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Paper, Grid, Divider, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, Button, Dialog, DialogTitle, DialogContent, DialogActions, Accordion, AccordionSummary, AccordionDetails, Alert
 } from '@mui/material';
@@ -7,10 +7,13 @@ import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LogoutIcon from '@mui/icons-material/Logout';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { useTasks } from '../hooks/useTasks';
 
 const Settings = ({ handleLogout }) => {
+  // Tasks for CSV export
+  const { tasks } = useTasks();
   // State for toggles and dialogs
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(() => localStorage.getItem('appLanguage') || 'en');
   const [reminders, setReminders] = useState(true);
   const [assignments, setAssignments] = useState(true);
   const [weeklySummary, setWeeklySummary] = useState(false);
@@ -28,6 +31,55 @@ const Settings = ({ handleLogout }) => {
   const [deactivateDialog, setDeactivateDialog] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [logoutDialog, setLogoutDialog] = useState(false);
+
+  // Basic translations for a few labels (en, es, de)
+  const i18n = useMemo(() => ({
+    en: {
+      settings: 'Settings',
+      general: 'General Preferences',
+      language: 'Language',
+      notifications: 'Notifications',
+      privacy: 'Privacy & Security',
+      data: 'Data Management',
+      downloadCsv: 'Download Task Data (CSV)',
+      clearAll: 'Clear All Tasks',
+      reminderTime: 'Reminder Time (minutes before due)',
+      account: 'Account Actions',
+    },
+    es: {
+      settings: 'Configuración',
+      general: 'Preferencias generales',
+      language: 'Idioma',
+      notifications: 'Notificaciones',
+      privacy: 'Privacidad y seguridad',
+      data: 'Gestión de datos',
+      downloadCsv: 'Descargar tareas (CSV)',
+      clearAll: 'Borrar todas las tareas',
+      reminderTime: 'Tiempo de recordatorio (minutos antes)',
+      account: 'Acciones de la cuenta',
+    },
+    de: {
+      settings: 'Einstellungen',
+      general: 'Allgemeine Einstellungen',
+      language: 'Sprache',
+      notifications: 'Benachrichtigungen',
+      privacy: 'Datenschutz & Sicherheit',
+      data: 'Datenverwaltung',
+      downloadCsv: 'Aufgaben herunterladen (CSV)',
+      clearAll: 'Alle Aufgaben löschen',
+      reminderTime: 'Erinnerungszeit (Minuten vor Fälligkeit)',
+      account: 'Kontohandlungen',
+    }
+  }), []);
+
+  // Persist language + set document lang
+  useEffect(() => {
+    localStorage.setItem('appLanguage', language);
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = language;
+    }
+    window.dispatchEvent(new CustomEvent('language-changed', { detail: { language } }));
+  }, [language]);
 
   // Load user preferences from API
   useEffect(() => {
@@ -55,25 +107,51 @@ const Settings = ({ handleLogout }) => {
     loadPreferences();
   }, []);
 
+  // Helper: convert tasks to CSV
+  const toCsv = (rows) => {
+    if (!Array.isArray(rows) || rows.length === 0) return 'id,title,description,status,priority,dueDate,createdAt,updatedAt\n';
+    const header = ['id','title','description','status','priority','dueDate','createdAt','updatedAt'];
+    const escape = (val) => {
+      if (val === undefined || val === null) return '';
+      const s = String(val).replace(/"/g, '""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    };
+    const lines = rows.map(r => header.map(h => escape(r[h] ?? r[h === 'id' ? '_id' : h])).join(','));
+    return header.join(',') + '\n' + lines.join('\n');
+  };
+
+  const handleDownloadCsv = () => {
+    const csv = toCsv(tasks || []);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+    a.href = url;
+    a.download = `tasks_export_${ts}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Box sx={{ p: { xs: 1, md: 4 } }}>
       <Typography variant="h4" fontWeight={700} color="primary" gutterBottom>
-        Settings
+        {i18n[language].settings}
       </Typography>
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">General Preferences</Typography>
+          <Typography variant="h6">{i18n[language].general}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={4}>
               <FormControl fullWidth>
-                <InputLabel>Language</InputLabel>
-                <Select value={language} onChange={e => setLanguage(e.target.value)} label="Language">
+                <InputLabel>{i18n[language].language}</InputLabel>
+                <Select value={language} onChange={e => setLanguage(e.target.value)} label={i18n[language].language}>
                   <MenuItem value="en">English</MenuItem>
-                  <MenuItem value="es">Spanish</MenuItem>
-                  <MenuItem value="fr">French</MenuItem>
-                  <MenuItem value="de">German</MenuItem>
+                  <MenuItem value="es">Español</MenuItem>
+                  <MenuItem value="de">Deutsch</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -82,7 +160,7 @@ const Settings = ({ handleLogout }) => {
       </Accordion>
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Notifications</Typography>
+          <Typography variant="h6">{i18n[language].notifications}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <FormControlLabel
@@ -130,7 +208,7 @@ const Settings = ({ handleLogout }) => {
             label="Task Reminder Notifications"
           />
           <FormControl fullWidth sx={{ mt: 2, maxWidth: 300 }}>
-            <InputLabel>Reminder Time (minutes before due)</InputLabel>
+            <InputLabel>{i18n[language].reminderTime}</InputLabel>
             <Select 
               value={reminderTime} 
               onChange={async (e) => {
@@ -159,7 +237,7 @@ const Settings = ({ handleLogout }) => {
       </Accordion>
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Privacy & Security</Typography>
+          <Typography variant="h6">{i18n[language].privacy}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <FormControlLabel
@@ -183,15 +261,15 @@ const Settings = ({ handleLogout }) => {
       </Accordion>
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Data Management</Typography>
+          <Typography variant="h6">{i18n[language].data}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Button startIcon={<DownloadIcon />} variant="outlined" sx={{ mr: { sm: 2, xs: 0 }, width: { xs: '100%', sm: 'auto' } }}>
-              Download Task Data (CSV)
+            <Button onClick={handleDownloadCsv} startIcon={<DownloadIcon />} variant="outlined" sx={{ mr: { sm: 2, xs: 0 }, width: { xs: '100%', sm: 'auto' } }}>
+              {i18n[language].downloadCsv}
             </Button>
             <Button startIcon={<DeleteIcon />} color="error" variant="outlined" onClick={() => setClearDialog(true)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-              Clear All Tasks
+              {i18n[language].clearAll}
             </Button>
           </Box>
           <Dialog open={clearDialog} onClose={() => setClearDialog(false)}>
@@ -211,7 +289,7 @@ const Settings = ({ handleLogout }) => {
       </Accordion>
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Account Actions</Typography>
+          <Typography variant="h6">{i18n[language].account}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>

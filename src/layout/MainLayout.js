@@ -39,8 +39,8 @@ const MainLayout = ({ children, handleLogout }) => {
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
-          ml: { xs: 0, md: collapsed ? '64px' : '240px' },
-          transition: 'margin-left 0.2s'
+          ml: { xs: 0, md: collapsed ? '64px' : '280px' },
+          transition: 'margin-left 0.3s ease'
         }}
       >
         {/* Render Header directly so it can control its own margin/width */}
@@ -55,11 +55,9 @@ const MainLayout = ({ children, handleLogout }) => {
           component="main"
           sx={{
             flex: 1,
-            p: { xs: 1, sm: 2, md: 4 },
             overflow: 'auto',
             width: '100%',
             minHeight: 400,
-            transition: 'padding 0.3s',
             bgcolor: 'background.default'
           }}
         >

@@ -14,7 +14,8 @@ const User = sequelize.define('User', {
   email: {
     type: DataTypes.STRING(255),
     allowNull: false,
-    unique: true,
+    // Use a stable unique constraint name to avoid duplicate indexes from sync({ alter: true })
+    unique: 'users_email_unique',
   },
   password: {
     type: DataTypes.STRING(255),
