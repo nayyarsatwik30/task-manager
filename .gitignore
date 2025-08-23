@@ -21,3 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# backend environment files (keep local, do not commit)
+backend/config.env
+backend/.env
+backend/.env.*

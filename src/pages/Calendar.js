@@ -1,5 +1,5 @@
 // src/pages/Calendar.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -26,6 +26,8 @@ const CalendarPage = () => {
   const [events, setEvents] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const calendarRef = useRef(null);
+  const containerRef = useRef(null);
   const [taskForm, setTaskForm] = useState({
     title: '',
     description: '',
@@ -137,8 +139,30 @@ const CalendarPage = () => {
     }
   };
 
+  // Ensure calendar always occupies full width when layout changes (e.g., sidebar toggle)
+  useEffect(() => {
+    if (!containerRef.current || !calendarRef.current) return;
+
+    const api = calendarRef.current.getApi?.();
+    if (!api) return;
+
+    const ro = new ResizeObserver(() => {
+      // Ask FullCalendar to recompute dimensions when container width changes
+      api.updateSize();
+    });
+    ro.observe(containerRef.current);
+
+    // Also update on first mount to be safe
+    api.updateSize();
+
+    return () => {
+      ro.disconnect();
+    };
+  }, []);
+
   return (
     <Box 
+      ref={containerRef}
       sx={{ 
         padding: { xs: 1, sm: 2 },
         backgroundColor: theme.palette.mode === 'dark' ? '#0f1218' : '#f3f6fb',
@@ -351,12 +375,15 @@ const CalendarPage = () => {
       </Box>
       
       <FullCalendar
+        ref={calendarRef}
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         events={events}
         dateClick={handleDateClick}
         eventClick={handleEventClick}
         height="auto"
+        handleWindowResize={true}
+        windowResizeDelay={0}
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
