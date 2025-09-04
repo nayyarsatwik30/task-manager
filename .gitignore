@@ -26,3 +26,5 @@ yarn-error.log*
 backend/config.env
 backend/.env
 backend/.env.*
+src/.env.development
+

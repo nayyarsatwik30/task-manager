@@ -68,7 +68,7 @@ const CelebrationOverlay = ({ open, onClose, headline = 'Well done!', subcopy = 
         zIndex: (t) => t.zIndex.modal + 1,
         background: theme.palette.mode === 'dark'
           ? 'rgba(15,18,24,0.7)'
-          : 'rgba(243,246,251,0.7)'
+          : 'rgba(243, 246, 251, 0.7)'
       }}
       aria-live="polite"
       role="dialog"

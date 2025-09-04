@@ -9,11 +9,12 @@ import MainLayout from './layout/MainLayout';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import MyTasks from './pages/MyTasks';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import CalendarPage from './pages/Calendar';
 import { verifyEmailToken } from './utils/authUtils';
+import CopilotAssistant from './components/CopilotAssistant.jsx';
 
 // Create a component that uses useSearchParams inside Router context
 const AppContent = () => {
@@ -103,6 +104,8 @@ const AppContent = () => {
         element={
           isAuthenticated ? (
             <MainLayout handleLogout={handleLogout}>
+              {/* Floating AI assistant available across protected routes */}
+              <CopilotAssistant />
               <Routes>
                 <Route path="/" element={<React.Suspense fallback={null}><Dashboard /></React.Suspense>} />
                 <Route path="/dashboard" element={<React.Suspense fallback={null}><Dashboard /></React.Suspense>} />
