@@ -217,6 +217,12 @@ const MyTasks = () => {
         return { todayTasks: [], upcomingTasks, completedTasks: [] };
       case 'completed':
         return { todayTasks: [], upcomingTasks: [], completedTasks };
+      case 'pending':
+        // Show all pending tasks (today + upcoming)
+        return { todayTasks, upcomingTasks, completedTasks: [] };
+      case 'due-today':
+        // Show only tasks due today
+        return { todayTasks, upcomingTasks: [], completedTasks: [] };
       default:
         return { todayTasks, upcomingTasks, completedTasks };
     }
@@ -226,7 +232,9 @@ const MyTasks = () => {
   const displayTitle = currentFilter ?
     (currentFilter === 'today' ? "Today's Tasks" :
       currentFilter === 'upcoming' ? 'Upcoming Tasks' :
-        currentFilter === 'completed' ? 'Completed Tasks' : 'My Tasks') : 'My Tasks';
+        currentFilter === 'completed' ? 'Completed Tasks' :
+          currentFilter === 'pending' ? 'Pending Tasks' :
+            currentFilter === 'due-today' ? "Tasks Due Today" : 'My Tasks') : 'My Tasks';
 
   if (error) {
     return (

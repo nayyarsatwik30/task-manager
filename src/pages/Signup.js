@@ -85,10 +85,6 @@ const Signup = ({ setIsAuthenticated }) => {
     console.log('Google signup clicked');
   };
 
-  const handleMicrosoftSignup = () => {
-    // Redirect to backend Microsoft OAuth route
-    window.location.href = 'http://localhost:5000/api/auth/microsoft';
-  };
 
   return (
     <AnimatedBackground>
@@ -328,34 +324,6 @@ const Signup = ({ setIsAuthenticated }) => {
                     }}
                   />
                 </GoogleOAuthProvider>
-                
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  size="large"
-                  onClick={handleMicrosoftSignup}
-                  sx={{ 
-                    py: 1.5,
-                    borderColor: '#5e5e5e',
-                    color: '#e0e0e0',
-                    backgroundColor: theme.palette.mode === 'dark' ? '#2b2b2b' : 'transparent',
-                    '&:hover': {
-                      borderColor: '#4a4a4a',
-                      backgroundColor: theme.palette.mode === 'dark' ? '#333' : 'rgba(0,0,0,0.04)',
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {/* Microsoft 4-square logo */}
-                    <svg width="20" height="20" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="10" height="10" x="1" y="1" fill="#f25022"/>
-                      <rect width="10" height="10" x="12" y="1" fill="#7fba00"/>
-                      <rect width="10" height="10" x="1" y="12" fill="#00a4ef"/>
-                      <rect width="10" height="10" x="12" y="12" fill="#ffb900"/>
-                    </svg>
-                    Sign up with Microsoft
-                  </Box>
-                </Button>
               </Box>
 
               <Box sx={{ mt: 3, textAlign: 'center' }}>

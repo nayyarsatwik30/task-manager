@@ -564,6 +564,7 @@ const Dashboard = () => {
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     position: 'relative',
                     overflow: 'hidden',
+                    cursor: 'pointer',
                     '&::before': {
                       content: '""',
                       position: 'absolute',
@@ -583,6 +584,18 @@ const Dashboard = () => {
                         height: 4,
                         opacity: 1
                       }
+                    }
+                  }}
+                  onClick={() => {
+                    // Navigate to appropriate task filter based on card type
+                    if (item.label === 'Total Tasks') {
+                      navigate('/tasks');
+                    } else if (item.label === 'Tasks Completed') {
+                      navigate('/tasks?filter=completed');
+                    } else if (item.label === 'Pending Tasks') {
+                      navigate('/tasks?filter=pending');
+                    } else if (item.label === 'Tasks Due Today') {
+                      navigate('/tasks?filter=due-today');
                     }
                   }}
                 >
