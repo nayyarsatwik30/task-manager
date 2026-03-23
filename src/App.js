@@ -14,7 +14,6 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import CalendarPage from './pages/Calendar';
 import { verifyEmailToken } from './utils/authUtils';
-import CopilotAssistant from './components/CopilotAssistant.jsx';
 
 // Create a component that uses useSearchParams inside Router context
 const AppContent = () => {
@@ -29,7 +28,7 @@ const AppContent = () => {
       try {
         // First check for existing token in localStorage
         const token = localStorage.getItem('token');
-        
+
         if (token) {
           // Verify the token with the backend
           try {
@@ -40,7 +39,7 @@ const AppContent = () => {
                 'Content-Type': 'application/json'
               }
             });
-            
+
             if (response.ok) {
               // Token is valid
               setIsAuthenticated(true);
@@ -104,8 +103,6 @@ const AppContent = () => {
         element={
           isAuthenticated ? (
             <MainLayout handleLogout={handleLogout}>
-              {/* Floating AI assistant available across protected routes */}
-              <CopilotAssistant />
               <Routes>
                 <Route path="/" element={<React.Suspense fallback={null}><Dashboard /></React.Suspense>} />
                 <Route path="/dashboard" element={<React.Suspense fallback={null}><Dashboard /></React.Suspense>} />

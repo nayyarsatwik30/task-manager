@@ -13,6 +13,7 @@ const MainLayout = ({ children, handleLogout }) => {
   const [collapsed, setCollapsed] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Box
@@ -40,7 +41,8 @@ const MainLayout = ({ children, handleLogout }) => {
           flexDirection: 'column',
           minHeight: '100vh',
           ml: { xs: 0, md: collapsed ? '64px' : '280px' },
-          transition: 'margin-left 0.3s ease'
+          transition: 'margin-left 0.3s ease',
+          width: { xs: '100%', md: 'auto' }
         }}
       >
         {/* Render Header directly so it can control its own margin/width */}
@@ -57,8 +59,10 @@ const MainLayout = ({ children, handleLogout }) => {
             flex: 1,
             overflow: 'auto',
             width: '100%',
-            minHeight: 400,
-            bgcolor: 'background.default'
+            minHeight: { xs: 'calc(100vh - 64px)', md: 400 },
+            bgcolor: 'background.default',
+            pt: { xs: 1, sm: 2 },
+            px: { xs: 1, sm: 2 }
           }}
         >
           {children}

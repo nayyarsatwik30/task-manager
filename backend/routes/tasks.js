@@ -8,6 +8,36 @@ const { generateEmailToken } = require('../utils/emailAuth');
 // Get frontend URL from environment variables or use default
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
+// Email transporter configuration with error handling
+let transporter = null;
+
+const initializeEmailTransporter = () => {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.warn('⚠️  Email credentials not found - task emails will not work');
+      console.warn('   Set EMAIL_USER and EMAIL_PASS in backend/config.env');
+      return null;
+    }
+
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    console.log('✅ Task email transporter initialized');
+    return transporter;
+  } catch (error) {
+    console.error('❌ Failed to initialize task email transporter:', error);
+    return null;
+  }
+};
+
+// Initialize email transporter
+initializeEmailTransporter();
+
 // Generate authenticated URL with token
 const generateAuthenticatedUrl = (user, path) => {
   const token = generateEmailToken(user);
@@ -24,13 +54,11 @@ async function sendTaskCreationEmail(userEmail, taskData) {
       return;
     }
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    // Check if email transporter is available
+    if (!transporter) {
+      console.error('❌ Email transporter not initialized - cannot send task creation email');
+      return;
+    }
 
     // Generate authenticated dashboard URL
     const dashboardUrl = generateAuthenticatedUrl(user, '/dashboard');
@@ -232,13 +260,11 @@ async function sendTaskCompletionEmail(userEmail, taskData) {
       return;
     }
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    // Check if email transporter is available
+    if (!transporter) {
+      console.error('❌ Email transporter not initialized - cannot send task completion email');
+      return;
+    }
 
     // Generate authenticated dashboard URL
     const dashboardUrl = generateAuthenticatedUrl(user, '/dashboard');
@@ -441,7 +467,7 @@ async function sendTaskCompletionEmail(userEmail, taskData) {
 router.get('/', async (req, res) => {
   try {
     const { userEmail } = req.query;
-    
+
     if (!userEmail) {
       return res.status(400).json({
         success: false,
@@ -452,7 +478,7 @@ router.get('/', async (req, res) => {
     // Get user ID from email
     const { User } = require('../models');
     const user = await User.findOne({ where: { email: userEmail } });
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -460,11 +486,11 @@ router.get('/', async (req, res) => {
       });
     }
 
-    const tasks = await Task.findAll({ 
+    const tasks = await Task.findAll({
       where: { user_id: user.id },
-      order: [['created_at', 'DESC']] 
+      order: [['created_at', 'DESC']]
     });
-    
+
     res.json({
       success: true,
       data: tasks,
@@ -508,13 +534,13 @@ router.get('/:id', async (req, res) => {
 // POST /api/tasks - Create new task
 router.post('/', async (req, res) => {
   try {
-    const { 
-      title, 
-      description, 
-      status = 'pending', 
-      priority = 'medium', 
-      due_date, 
-      due_time, 
+    const {
+      title,
+      description,
+      status = 'pending',
+      priority = 'medium',
+      due_date,
+      due_time,
       userEmail,
       reminder_enabled = true
     } = req.body;
@@ -524,7 +550,7 @@ router.post('/', async (req, res) => {
         message: 'Title is required'
       });
     }
-    
+
     if (!userEmail) {
       return res.status(400).json({
         success: false,
@@ -535,7 +561,7 @@ router.post('/', async (req, res) => {
     // Get user ID from email
     const { User } = require('../models');
     const user = await User.findOne({ where: { email: userEmail } });
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -586,17 +612,17 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { 
-      title, 
-      description, 
-      status, 
-      priority, 
-      due_date, 
-      due_time, 
+    const {
+      title,
+      description,
+      status,
+      priority,
+      due_date,
+      due_time,
       userEmail,
       reminder_enabled
     } = req.body;
-    
+
     if (!userEmail) {
       return res.status(400).json({
         success: false,
@@ -607,7 +633,7 @@ router.put('/:id', async (req, res) => {
     // Get user ID from email
     const { User } = require('../models');
     const user = await User.findOne({ where: { email: userEmail } });
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -615,23 +641,23 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    const task = await Task.findOne({ 
-      where: { 
+    const task = await Task.findOne({
+      where: {
         id: id,
-        user_id: user.id 
+        user_id: user.id
       }
     });
-    
+
     if (!task) {
       return res.status(404).json({
         success: false,
         message: 'Task not found'
       });
     }
-    
+
     // Store old status for comparison
     const oldStatus = task.status;
-    
+
     // Update task fields
     if (title !== undefined) task.title = title;
     if (description !== undefined) task.description = description;
@@ -639,13 +665,13 @@ router.put('/:id', async (req, res) => {
     if (priority) task.priority = priority;
     if (due_date !== undefined) task.due_date = due_date || null;
     if (due_time !== undefined) task.due_time = due_time || null;
-    
+
     // Reset reminder flags if due date/time changes
     if (due_date !== undefined || due_time !== undefined) {
       task.reminder_sent = false;
       task.reminder_sent_at = null;
     }
-    
+
     // Update reminder settings if provided
     if (reminder_enabled !== undefined) {
       task.reminder_enabled = reminder_enabled;
@@ -684,7 +710,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { userEmail } = req.query;
-    
+
     if (!userEmail) {
       return res.status(400).json({
         success: false,
@@ -695,7 +721,7 @@ router.delete('/:id', async (req, res) => {
     // Get user ID from email
     const { User } = require('../models');
     const user = await User.findOne({ where: { email: userEmail } });
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -703,20 +729,20 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    const task = await Task.findOne({ 
-      where: { 
+    const task = await Task.findOne({
+      where: {
         id: id,
-        user_id: user.id 
+        user_id: user.id
       }
     });
-    
+
     if (!task) {
       return res.status(404).json({
         success: false,
         message: 'Task not found'
       });
     }
-    
+
     await task.destroy();
     res.json({
       success: true,

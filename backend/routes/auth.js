@@ -343,14 +343,29 @@ async function createStarterTasksForUser(user) {
 
 // Signup route
 router.post('/signup', async (req, res) => {
+  console.log('🔍 SIGNUP DEBUG - Request body:', req.body);
+  console.log('🔍 SIGNUP DEBUG - Headers:', req.headers);
+
   const { name, email, password } = req.body;
+
   if (!name || !email || !password) {
-    return res.status(400).json({ success: false, message: 'All fields are required.' });
+    console.log('❌ SIGNUP ERROR - Missing fields:', { name: !!name, email: !!email, password: !!password });
+    return res.status(400).json({
+      success: false,
+      message: 'All fields are required.',
+      details: {
+        name: name ? '✅' : '❌ Missing',
+        email: email ? '✅' : '❌ Missing',
+        password: password ? '✅' : '❌ Missing'
+      }
+    });
   }
+
   try {
     // Check if user already exists
     const existing = await User.findOne({ where: { email } });
     if (existing) {
+      console.log('❌ SIGNUP ERROR - Email already registered:', email);
       return res.status(409).json({ success: false, message: 'Email already registered.' });
     }
     // Hash password
@@ -368,10 +383,11 @@ router.post('/signup', async (req, res) => {
     await createStarterTasksForUser(user);
     // Send verification email
     await sendVerificationEmail(user, verificationToken);
+    console.log('✅ SIGNUP SUCCESS - User created:', email);
     res.json({ success: true, message: 'User registered successfully. Please check your email to verify your account.', userId: user.id });
   } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ success: false, message: 'Server error.' });
+    console.error('❌ SIGNUP ERROR:', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 });
 
@@ -431,30 +447,70 @@ router.post('/resend-verification', async (req, res) => {
 
 // Login route
 router.post('/login', async (req, res) => {
+  console.log('🔍 LOGIN DEBUG - Request body:', req.body);
+  console.log('🔍 LOGIN DEBUG - Headers:', req.headers);
+
   const { email, password } = req.body;
+
   if (!email || !password) {
-    return res.status(400).json({ success: false, message: 'Email and password are required.' });
+    console.log('❌ LOGIN ERROR - Missing fields:', { email: !!email, password: !!password });
+    return res.status(400).json({
+      success: false,
+      message: 'Email and password are required.',
+      details: {
+        email: email ? '✅' : '❌ Missing',
+        password: password ? '✅' : '❌ Missing'
+      }
+    });
   }
+
   try {
     // Find user by email
     const user = await User.findOne({ where: { email } });
     if (!user) {
+      console.log('❌ LOGIN ERROR - User not found:', email);
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
-    // Check if verified
-    if (!user.verified) {
-      return res.status(403).json({ success: false, message: 'Please verify your email before logging in.' });
+
+    // Check if email is verified
+    if (!user.isVerified) {
+      console.log('❌ LOGIN ERROR - Email not verified:', email);
+      return res.status(403).json({
+        success: false,
+        message: 'Please verify your email before logging in.',
+        requiresVerification: true
+      });
     }
+
     // Compare password
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.log('❌ LOGIN ERROR - Password mismatch:', email);
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
-    // For now, just return success (no JWT/session yet)
-    res.json({ success: true, message: 'Login successful.', user: { id: user.id, name: user.name, email: user.email } });
+
+    // Update last login
+    await user.update({ lastLogin: new Date() });
+
+    console.log('✅ LOGIN SUCCESS - User logged in:', email);
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+        lastLogin: user.lastLogin
+      }
+    });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Server error.' });
+    console.error('❌ LOGIN ERROR:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -573,14 +629,14 @@ router.post('/cleanup-tasks', async (req, res) => {
 router.get('/verify-token', async (req, res) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
-    
+
     if (!token) {
       return res.status(401).json({ error: 'No token provided' });
     }
 
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Check if user still exists
     const user = await User.findByPk(decoded.id);
     if (!user) {
@@ -588,13 +644,13 @@ router.get('/verify-token', async (req, res) => {
     }
 
     // Token is valid
-    res.json({ 
-      valid: true, 
-      user: { 
-        id: user.id, 
-        name: user.name, 
-        email: user.email 
-      } 
+    res.json({
+      valid: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
     });
   } catch (error) {
     console.error('Token verification error:', error);
@@ -605,14 +661,14 @@ router.get('/verify-token', async (req, res) => {
 // Forgot password route
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
-  
+
   if (!email) {
     return res.status(400).json({ success: false, message: 'Email is required.' });
   }
 
   try {
     const user = await User.findOne({ where: { email } });
-    
+
     if (!user) {
       // Don't reveal if email exists for security
       return res.json({ success: true, message: 'If an account with that email exists, we have sent a password reset link.' });
@@ -641,17 +697,17 @@ router.post('/forgot-password', async (req, res) => {
 // Reset password route
 router.post('/reset-password', async (req, res) => {
   const { token, email, newPassword } = req.body;
-  
+
   if (!token || !email || !newPassword) {
     return res.status(400).json({ success: false, message: 'Token, email, and new password are required.' });
   }
 
   try {
-    const user = await User.findOne({ 
-      where: { 
+    const user = await User.findOne({
+      where: {
         email,
         resetPasswordToken: token,
-      } 
+      }
     });
 
     if (!user) {

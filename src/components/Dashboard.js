@@ -28,12 +28,12 @@ const ProgressRing = ({ value, max, size = 80, strokeWidth = 6, color = '#1976d2
   const circumference = radius * 2 * Math.PI;
   const progress = max > 0 ? (value / max) * 100 : 0;
   const strokeDasharray = `${(progress / 100) * circumference} ${circumference}`;
-  
+
   // Theme-aware background stroke color
-  const backgroundStroke = theme.palette.mode === 'dark' 
-    ? 'rgba(255,255,255,0.1)' 
+  const backgroundStroke = theme.palette.mode === 'dark'
+    ? 'rgba(255,255,255,0.1)'
     : 'rgba(0,0,0,0.08)';
-  
+
   return (
     <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
@@ -92,7 +92,7 @@ const getMotivationalMessage = (tasks) => {
   const completedTasks = tasks.filter(task => task.status === 'completed').length;
   const totalTasks = tasks.length;
   const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  
+
   if (completionRate >= 80) {
     return "🎉 Incredible work! You're absolutely crushing your goals today!";
   } else if (completionRate >= 60) {
@@ -439,10 +439,10 @@ const Dashboard = () => {
           <Box sx={{ position: 'absolute', inset: 0, opacity: 0.15, backgroundImage: 'radial-gradient(circle at 20% 10%, #fff 0, transparent 40%), radial-gradient(circle at 80% 30%, #fff 0, transparent 30%)' }} />
           {/* Pull to refresh indicator */}
           {isMobile && (
-            <Box sx={{ 
-              position: 'absolute', 
-              top: -20, 
-              left: '50%', 
+            <Box sx={{
+              position: 'absolute',
+              top: -20,
+              left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 10,
               display: isRefreshing ? 'block' : 'none'
@@ -451,8 +451,8 @@ const Dashboard = () => {
                 variant="contained"
                 size="small"
                 startIcon={<RefreshIcon />}
-                sx={{ 
-                  bgcolor: 'rgba(255,255,255,0.9)', 
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.9)',
                   color: '#1976d2',
                   '&:hover': { bgcolor: 'rgba(255,255,255,1)' }
                 }}
@@ -463,7 +463,7 @@ const Dashboard = () => {
               </Button>
             </Box>
           )}
-          
+
           <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} justifyContent="space-between" sx={{ position: 'relative' }}>
             <Box>
               <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: 0.2 }}>
@@ -538,160 +538,267 @@ const Dashboard = () => {
             </Stack>
           </Card>
         )}
-        {/* Analytics Cards Section */}
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, mb: 3 }}>
-          <Grid container spacing={2.5} justifyContent="center">
-            {analytics.map((item) => (
-              <Grid key={item.label} item xs={12} sm={6} lg={3}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    p: 3,
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: 4,
-                    border: theme => theme.palette.mode === 'dark' 
-                      ? '1px solid rgba(255,255,255,0.12)' 
-                      : '1px solid rgba(0,0,0,0.08)',
-                    boxShadow: theme => theme.palette.mode === 'dark' 
-                      ? '0 4px 24px rgba(0,0,0,0.4)' 
-                      : '0 2px 16px rgba(0,0,0,0.06)',
-                    bgcolor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255,255,255,0.08)' 
-                      : '#ffffff',
-                    backdropFilter: 'blur(10px)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: 3,
-                      background: `linear-gradient(90deg, ${item.color}, ${item.color}88)`,
-                      opacity: 0.8
-                    },
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: theme => theme.palette.mode === 'dark'
-                        ? '0 8px 40px rgba(0,0,0,0.5)'
-                        : '0 8px 32px rgba(0,0,0,0.12)',
-                      '&::before': {
-                        height: 4,
-                        opacity: 1
-                      }
-                    }
-                  }}
-                  onClick={() => {
-                    // Navigate to appropriate task filter based on card type
-                    if (item.label === 'Total Tasks') {
-                      navigate('/tasks');
-                    } else if (item.label === 'Tasks Completed') {
-                      navigate('/tasks?filter=completed');
-                    } else if (item.label === 'Pending Tasks') {
-                      navigate('/tasks?filter=pending');
-                    } else if (item.label === 'Tasks Due Today') {
-                      navigate('/tasks?filter=due-today');
-                    }
-                  }}
-                >
-                  <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 2.5 }}>
-                    <Box sx={{ flex: 1, mr: 2 }}>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          fontWeight: 500,
-                          color: 'text.secondary',
-                          fontSize: '0.8rem',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          mb: 0.5
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
-                      <Typography 
-                        variant="h4" 
-                        sx={{ 
-                          fontWeight: 700,
-                          color: 'text.primary',
-                          fontSize: '2rem',
-                          lineHeight: 1.2
-                        }}
-                      >
-                        {item.value}
-                      </Typography>
-                    </Box>
-                    <Box 
-                      sx={{ 
-                        width: 48,
-                        height: 48,
+        {/* Mobile Analytics Cards Slider */}
+        {isMobile && tasks.length > 0 && (
+          <Box sx={{ mb: 3, px: 2 }}>
+            <Typography variant="h6" fontWeight={600} sx={{ mb: 2, color: 'text.primary' }}>
+              📊 Your Overview
+            </Typography>
+            <Box sx={{ position: 'relative' }}>
+              <Box sx={{
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': { display: 'none' },
+                gap: 2,
+                pb: 1
+              }}>
+                {analytics.map((item, index) => (
+                  <Box key={item.label} sx={{
+                    minWidth: 280,
+                    scrollSnapAlign: 'start',
+                    flexShrink: 0
+                  }}>
+                    <Card
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        height: 120,
                         borderRadius: 3,
-                        bgcolor: `${item.color}15`,
+                        border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e6e8ef',
+                        bgcolor: theme => theme.palette.mode === 'dark' ? '#151922' : '#ffffff',
+                        backdropFilter: 'saturate(140%) blur(6px)',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: theme => theme.palette.mode === 'dark' ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.12)',
+                        }
                       }}
                     >
-                      {item.icon && React.cloneElement(item.icon, { 
-                        sx: { 
-                          fontSize: 24, 
-                          color: item.color 
-                        } 
-                      })}
-                    </Box>
-                  </Stack>
-                  <Box sx={{ mt: 'auto' }}>
-                    {item.deltaLabel && (
-                      <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center',
-                        gap: 1,
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: theme => theme.palette.mode === 'dark' 
-                          ? 'rgba(255,255,255,0.05)' 
-                          : 'rgba(0,0,0,0.02)'
-                      }}>
-                        <Chip
-                          label={item.deltaLabel}
-                          size="small"
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '0.75rem',
-                            height: 24,
-                            bgcolor: (item.delta ?? 0) >= 0 ? '#4caf5015' : '#f4433615',
-                            color: (item.delta ?? 0) >= 0 ? '#4caf50' : '#f44336',
-                            border: (item.delta ?? 0) >= 0 ? '1px solid #4caf5030' : '1px solid #f4433630'
-                          }}
-                        />
-                        <Typography 
-                          variant="caption" 
-                          color="text.secondary"
-                          sx={{ fontSize: '0.75rem' }}
-                        >
-                          vs last week
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <Box sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: `${item.color}15`,
+                          color: item.color,
+                          flexShrink: 0
+                        }}>
+                          {item.icon}
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{
+                          fontSize: '0.7rem',
+                          textAlign: 'right',
+                          flexShrink: 0,
+                          ml: 1
+                        }}>
+                          {item.trend}
                         </Typography>
                       </Box>
-                    )}
+                      <Box sx={{ width: '100%', textAlign: 'left' }}>
+                        <Typography variant="h4" fontWeight={700} color="text.primary" sx={{
+                          lineHeight: 1.2,
+                          mb: 0.5
+                        }}>
+                          {item.value}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{
+                          fontSize: '0.75rem',
+                          lineHeight: 1.2
+                        }}>
+                          {item.label}
+                        </Typography>
+                      </Box>
+                    </Card>
                   </Box>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
+                ))}
+              </Box>
+
+              {/* Slider Indicators */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, gap: 0.5 }}>
+                {analytics.map((_, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: 'primary.main',
+                      opacity: 0.3,
+                      transition: 'opacity 0.3s ease',
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        )}
+
+        {/* Desktop Analytics Cards Section */}
+        {!isMobile && tasks.length > 0 && (
+          <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, mb: 3 }}>
+            <Grid container spacing={2.5} justifyContent="center">
+              {analytics.map((item) => (
+                <Grid key={item.label} item xs={12} sm={6} lg={3}>
+                  <Card
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      borderRadius: 4,
+                      border: theme => theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255,255,255,0.12)'
+                        : '1px solid rgba(0,0,0,0.08)',
+                      boxShadow: theme => theme.palette.mode === 'dark'
+                        ? '0 4px 24px rgba(0,0,0,0.4)'
+                        : '0 2px 16px rgba(0,0,0,0.06)',
+                      bgcolor: theme => theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.08)'
+                        : '#ffffff',
+                      backdropFilter: 'blur(10px)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: 3,
+                        background: `linear-gradient(90deg, ${item.color}, ${item.color}88)`,
+                        opacity: 0.8
+                      },
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: theme => theme.palette.mode === 'dark'
+                          ? '0 8px 40px rgba(0,0,0,0.5)'
+                          : '0 8px 32px rgba(0,0,0,0.12)',
+                        '&::before': {
+                          height: 4,
+                          opacity: 1
+                        }
+                      }
+                    }}
+                    onClick={() => {
+                      // Navigate to appropriate task filter based on card type
+                      if (item.label === 'Total Tasks') {
+                        navigate('/tasks');
+                      } else if (item.label === 'Tasks Completed') {
+                        navigate('/tasks?filter=completed');
+                      } else if (item.label === 'Pending Tasks') {
+                        navigate('/tasks?filter=pending');
+                      } else if (item.label === 'Tasks Due Today') {
+                        navigate('/tasks?filter=due-today');
+                      }
+                    }}
+                  >
+                    <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 2.5 }}>
+                      <Box sx={{ flex: 1, mr: 2 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 500,
+                            color: 'text.secondary',
+                            fontSize: '0.8rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            mb: 0.5
+                          }}
+                        >
+                          {item.label}
+                        </Typography>
+                        <Typography
+                          variant="h4"
+                          sx={{
+                            fontWeight: 700,
+                            color: 'text.primary',
+                            fontSize: '2rem',
+                            lineHeight: 1.2
+                          }}
+                        >
+                          {item.value}
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 3,
+                          bgcolor: `${item.color}15`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        {item.icon && React.cloneElement(item.icon, {
+                          sx: {
+                            fontSize: 24,
+                            color: item.color
+                          }
+                        })}
+                      </Box>
+                    </Stack>
+                    <Box sx={{ mt: 'auto' }}>
+                      {item.deltaLabel && (
+                        <Box sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          p: 1.5,
+                          borderRadius: 2,
+                          bgcolor: theme => theme.palette.mode === 'dark'
+                            ? 'rgba(255,255,255,0.05)'
+                            : 'rgba(0,0,0,0.02)'
+                        }}>
+                          <Chip
+                            label={item.deltaLabel}
+                            size="small"
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              height: 24,
+                              bgcolor: (item.delta ?? 0) >= 0 ? '#4caf5015' : '#f4433615',
+                              color: (item.delta ?? 0) >= 0 ? '#4caf50' : '#f44336',
+                              border: (item.delta ?? 0) >= 0 ? '1px solid #4caf5030' : '1px solid #f4433630'
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ fontSize: '0.75rem' }}
+                          >
+                            vs last week
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Container>
+        )}
         {/* Quick Insights */}
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, mb: 3 }}>
-          <Typography 
-            variant="h5" 
-            sx={{ 
-              fontWeight: 700, 
-              mb: 3, 
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              mb: 3,
               color: 'text.primary',
               textAlign: { xs: 'center', md: 'left' }
             }}
@@ -745,14 +852,14 @@ const Dashboard = () => {
                       display: 'flex',
                       flexDirection: 'column',
                       borderRadius: 4,
-                      border: theme => theme.palette.mode === 'dark' 
-                        ? '1px solid rgba(255,255,255,0.12)' 
+                      border: theme => theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255,255,255,0.12)'
                         : '1px solid rgba(0,0,0,0.08)',
-                      boxShadow: theme => theme.palette.mode === 'dark' 
-                        ? '0 4px 24px rgba(0,0,0,0.4)' 
+                      boxShadow: theme => theme.palette.mode === 'dark'
+                        ? '0 4px 24px rgba(0,0,0,0.4)'
                         : '0 2px 16px rgba(0,0,0,0.06)',
-                      bgcolor: theme => theme.palette.mode === 'dark' 
-                        ? 'rgba(255,255,255,0.08)' 
+                      bgcolor: theme => theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.08)'
                         : '#ffffff',
                       backdropFilter: 'blur(10px)',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -782,9 +889,9 @@ const Dashboard = () => {
                   >
                     <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 2.5 }}>
                       <Box sx={{ flex: 1, mr: 2 }}>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
+                        <Typography
+                          variant="body2"
+                          sx={{
                             fontWeight: 500,
                             color: 'text.secondary',
                             fontSize: '0.8rem',
@@ -795,9 +902,9 @@ const Dashboard = () => {
                         >
                           {ins.title}
                         </Typography>
-                        <Typography 
-                          variant="h4" 
-                          sx={{ 
+                        <Typography
+                          variant="h4"
+                          sx={{
                             fontWeight: 700,
                             color: 'text.primary',
                             fontSize: '2rem',
@@ -807,8 +914,8 @@ const Dashboard = () => {
                           {ins.value}
                         </Typography>
                       </Box>
-                      <Box 
-                        sx={{ 
+                      <Box
+                        sx={{
                           width: 48,
                           height: 48,
                           borderRadius: 3,
@@ -825,17 +932,17 @@ const Dashboard = () => {
                       </Box>
                     </Stack>
                     <Box sx={{ mt: 'auto' }}>
-                      <Box sx={{ 
+                      <Box sx={{
                         p: 1.5,
                         borderRadius: 2,
-                        bgcolor: theme => theme.palette.mode === 'dark' 
-                          ? 'rgba(255,255,255,0.05)' 
+                        bgcolor: theme => theme.palette.mode === 'dark'
+                          ? 'rgba(255,255,255,0.05)'
                           : 'rgba(0,0,0,0.02)'
                       }}>
-                        <Typography 
-                          variant="body2" 
+                        <Typography
+                          variant="body2"
                           color="text.secondary"
-                          sx={{ 
+                          sx={{
                             fontSize: '0.875rem',
                             lineHeight: 1.4,
                             fontWeight: 500
@@ -853,204 +960,389 @@ const Dashboard = () => {
         </Container>
         {/* Analytics Charts */}
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, mb: 2 }}>
-          <Typography 
-            variant="h5" 
-            sx={{ 
-              fontWeight: 700, 
-              mb: 2, 
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              mb: { xs: 2, md: 3 },
               color: 'text.primary',
-              textAlign: { xs: 'center', md: 'left' }
+              textAlign: { xs: 'center', md: 'left' },
+              fontSize: { xs: '1.5rem', md: '2rem' }
             }}
           >
-            Analytics Overview
+            📈 Analytics Overview
           </Typography>
-          <Box sx={{ width: '100%' }}>
-            {/* Chart Navigation - Always visible */}
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              mb: 2,
-              width: '100%'
-            }}>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                maxWidth: 600,
-                mx: 'auto'
+
+          {/* Mobile Chart Slider */}
+          {isMobile && (
+            <Box sx={{ position: 'relative', mb: 3 }}>
+              <Box sx={{
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': { display: 'none' },
+                gap: 2,
+                pb: 1,
+                px: 1
               }}>
-                <IconButton 
+                {/* Line Chart */}
+                <Box sx={{
+                  minWidth: 320,
+                  maxWidth: 320,
+                  scrollSnapAlign: 'center',
+                  flexShrink: 0
+                }}>
+                  <Card
+                    elevation={0}
+                    sx={{
+                      p: { xs: 2, sm: 3 },
+                      borderRadius: 3,
+                      border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e6e8ef',
+                      bgcolor: theme => theme.palette.mode === 'dark' ? '#151922' : '#ffffff',
+                      backdropFilter: 'saturate(140%) blur(6px)',
+                      boxShadow: theme => theme.palette.mode === 'dark' ? '0 4px 24px rgba(0,0,0,0.4)' : '0 2px 16px rgba(0,0,0,0.06)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      height: 320,
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}
+                  >
+                    <Typography variant="h6" fontWeight={600} sx={{
+                      mb: 2,
+                      color: 'text.primary',
+                      textAlign: 'center',
+                      fontSize: '0.95rem'
+                    }}>
+                      📊 Task Completion (7 days)
+                    </Typography>
+                    <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <LineChart data={chartData.lineData}>
+                          <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                          <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                          <Line
+                            type="monotone"
+                            dataKey="completed"
+                            stroke="#1976d2"
+                            strokeWidth={3}
+                            dot={{ r: 4, fill: '#1976d2', stroke: '#fff', strokeWidth: 2 }}
+                            activeDot={{ r: 6, stroke: '#1976d2', strokeWidth: 2, fill: '#fff' }}
+                          />
+                          <RechartTooltip content={<CustomTooltip />} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </Card>
+                </Box>
+
+                {/* Pie Chart */}
+                <Box sx={{
+                  minWidth: 320,
+                  maxWidth: 320,
+                  scrollSnapAlign: 'center',
+                  flexShrink: 0
+                }}>
+                  <Card
+                    elevation={0}
+                    sx={{
+                      p: { xs: 2, sm: 3 },
+                      borderRadius: 3,
+                      border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e6e8ef',
+                      bgcolor: theme => theme.palette.mode === 'dark' ? '#151922' : '#ffffff',
+                      backdropFilter: 'saturate(140%) blur(6px)',
+                      boxShadow: theme => theme.palette.mode === 'dark' ? '0 4px 24px rgba(0,0,0,0.4)' : '0 2px 16px rgba(0,0,0,0.06)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      height: 320,
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}
+                  >
+                    <Typography variant="h6" fontWeight={600} sx={{
+                      mb: 2,
+                      color: 'text.primary',
+                      textAlign: 'center',
+                      fontSize: '0.95rem'
+                    }}>
+                      🎯 Tasks by Priority
+                    </Typography>
+                    <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <PieChart>
+                          <Pie
+                            data={chartData.pieData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={35}
+                            outerRadius={75}
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            labelLine={false}
+                          >
+                            {chartData.pieData.map((entry, idx) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartTooltip content={<CustomTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </Card>
+                </Box>
+
+                {/* Bar Chart */}
+                <Box sx={{
+                  minWidth: 320,
+                  maxWidth: 320,
+                  scrollSnapAlign: 'center',
+                  flexShrink: 0
+                }}>
+                  <Card
+                    elevation={0}
+                    sx={{
+                      p: { xs: 2, sm: 3 },
+                      borderRadius: 3,
+                      border: theme => theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e6e8ef',
+                      bgcolor: theme => theme.palette.mode === 'dark' ? '#151922' : '#ffffff',
+                      backdropFilter: 'saturate(140%) blur(6px)',
+                      boxShadow: theme => theme.palette.mode === 'dark' ? '0 4px 24px rgba(0,0,0,0.4)' : '0 2px 16px rgba(0,0,0,0.06)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      height: 320,
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}
+                  >
+                    <Typography variant="h6" fontWeight={600} sx={{
+                      mb: 2,
+                      color: 'text.primary',
+                      textAlign: 'center',
+                      fontSize: '0.95rem'
+                    }}>
+                      📊 Tasks by Status
+                    </Typography>
+                    <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={chartData.barData}>
+                          <XAxis dataKey="category" tick={{ fontSize: 11 }} />
+                          <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                          <Bar
+                            dataKey="tasks"
+                            fill="#1976d2"
+                            radius={[8, 8, 0, 0]}
+                            barSize={35}
+                          />
+                          <RechartTooltip content={<CustomTooltip />} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </Card>
+                </Box>
+              </Box>
+
+              {/* Mobile Chart Indicators */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, gap: 1 }}>
+                {['Completion', 'Priority', 'Status'].map((label, index) => (
+                  <Box
+                    key={label}
+                    sx={{
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: '12px',
+                      bgcolor: currentChartIndex === index ? 'primary.main' : 'grey.300',
+                      color: currentChartIndex === index ? 'white' : 'text.secondary',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                    }}
+                    onClick={() => setCurrentChartIndex(index)}
+                  >
+                    {label}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {/* Desktop Chart Navigation */}
+          {!isMobile && (
+            <Box sx={{ width: '100%' }}>
+              {/* Chart Navigation - Always visible */}
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 3,
+                px: { xs: 1, sm: 2 }
+              }}>
+                <IconButton
                   onClick={() => setCurrentChartIndex(prev => prev > 0 ? prev - 1 : 2)}
-                  sx={{ 
-                    bgcolor: 'primary.main', 
+                  sx={{
+                    bgcolor: 'primary.main',
                     color: 'white',
                     '&:hover': { bgcolor: 'primary.dark' },
-                    mr: 2,
-                    width: 48,
-                    height: 48
+                    display: { xs: 'none', sm: 'flex' }
                   }}
                 >
                   <ArrowBackIosIcon />
                 </IconButton>
-                
-                <Tabs 
-                  value={currentChartIndex} 
+
+                <Tabs
+                  value={currentChartIndex}
                   onChange={(e, newValue) => setCurrentChartIndex(newValue)}
                   variant="fullWidth"
-                  sx={{ 
+                  sx={{
                     minWidth: { xs: 200, sm: 300, md: 400 },
-                    '& .MuiTab-root': {
-                      fontWeight: 600,
-                      fontSize: '1rem'
-                    },
-                    '& .MuiTabs-flexContainer': {
-                      justifyContent: 'center'
-                    }
-                  }}
-                >
+                    maxWidth: { xs: 200, sm: 300, md: 400 },
+                    mx: 'auto'
+                  }}>
                   <Tab label="Completion" />
                   <Tab label="Priority" />
                   <Tab label="Status" />
                 </Tabs>
-                
-                <IconButton 
+
+                <IconButton
                   onClick={() => setCurrentChartIndex(prev => prev < 2 ? prev + 1 : 0)}
-                  sx={{ 
-                    bgcolor: 'primary.main', 
+                  sx={{
+                    bgcolor: 'primary.main',
                     color: 'white',
                     '&:hover': { bgcolor: 'primary.dark' },
-                    ml: 2,
-                    width: 48,
-                    height: 48
+                    display: { xs: 'none', sm: 'flex' }
                   }}
                 >
                   <ArrowForwardIosIcon />
                 </IconButton>
               </Box>
-            </Box>
 
-            {/* Chart Display */}
-            <Box sx={{ position: 'relative', overflow: 'hidden' }}>
-              {/* Line Chart */}
-              {currentChartIndex === 0 && (
-                <Card
-                  elevation={0}
-                  sx={{
-                    p: 4,
-                    borderRadius: 3,
-                    border: theme => theme.palette.mode === 'dark' 
-                      ? '1px solid rgba(255,255,255,0.08)' 
-                      : '1px solid rgba(0,0,0,0.06)',
-                    boxShadow: theme => theme.palette.mode === 'dark' 
-                      ? '0 8px 32px rgba(0,0,0,0.3)' 
-                      : '0 4px 20px rgba(0,0,0,0.08)',
-                    bgcolor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255,255,255,0.05)' 
-                      : '#ffffff',
-                  }}
-                >
-                  <Typography variant="h6" fontWeight={600} mb={3} color="primary">
-                    Task Completion (7 days)
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={chartData.lineData}>
-                      <XAxis dataKey="day" />
-                      <YAxis allowDecimals={false} />
-                      <Line
-                        type="monotone"
-                        dataKey="completed"
-                        stroke="#1976d2"
-                        strokeWidth={3}
-                        dot={{ r: 6, fill: '#1976d2', stroke: '#fff', strokeWidth: 2 }}
-                        activeDot={{ r: 8, stroke: '#1976d2', strokeWidth: 2, fill: '#fff' }}
-                      />
-                      <RechartTooltip content={<CustomTooltip />} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </Card>
-              )}
-              
-              {/* Pie Chart */}
-              {currentChartIndex === 1 && (
-                <Card
-                  elevation={0}
-                  sx={{
-                    p: 4,
-                    borderRadius: 3,
-                    border: theme => theme.palette.mode === 'dark' 
-                      ? '1px solid rgba(255,255,255,0.08)' 
-                      : '1px solid rgba(0,0,0,0.06)',
-                    boxShadow: theme => theme.palette.mode === 'dark' 
-                      ? '0 8px 32px rgba(0,0,0,0.3)' 
-                      : '0 4px 20px rgba(0,0,0,0.08)',
-                    bgcolor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255,255,255,0.05)' 
-                      : '#ffffff',
-                  }}
-                >
-                  <Typography variant="h6" fontWeight={600} mb={3} color="primary">
-                    Tasks by Priority
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={chartData.pieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="45%"
-                        outerRadius={100}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {chartData.pieData.map((entry, idx) => (
-                          <Cell key={entry.name} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <RechartTooltip content={<CustomTooltip />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Card>
-              )}
-              
-              {/* Bar Chart */}
-              {currentChartIndex === 2 && (
-                <Card
-                  elevation={0}
-                  sx={{
-                    p: 4,
-                    borderRadius: 3,
-                    border: theme => theme.palette.mode === 'dark' 
-                      ? '1px solid rgba(255,255,255,0.08)' 
-                      : '1px solid rgba(0,0,0,0.06)',
-                    boxShadow: theme => theme.palette.mode === 'dark' 
-                      ? '0 8px 32px rgba(0,0,0,0.3)' 
-                      : '0 4px 20px rgba(0,0,0,0.08)',
-                    bgcolor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255,255,255,0.05)' 
-                      : '#ffffff',
-                  }}
-                >
-                  <Typography variant="h6" fontWeight={600} mb={3} color="primary">
-                    Tasks by Status
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={chartData.barData}>
-                      <XAxis dataKey="category" />
-                      <YAxis allowDecimals={false} />
-                      <Bar
-                        dataKey="tasks"
-                        fill="#9c27b0"
-                        radius={[8, 8, 0, 0]}
-                        barSize={50}
-                      />
-                      <RechartTooltip content={<CustomTooltip />} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Card>
-              )}
+              {/* Chart Display */}
+              <Box sx={{ position: 'relative', overflow: 'hidden' }}>
+                {/* Line Chart */}
+                {currentChartIndex === 0 && (
+                  <Card
+                    elevation={0}
+                    sx={{
+                      p: 4,
+                      borderRadius: 3,
+                      border: theme => theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255,255,255,0.08)'
+                        : '1px solid rgba(0,0,0,0.06)',
+                      bgcolor: theme => theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.05)'
+                        : '#ffffff',
+                      backdropFilter: 'saturate(140%) blur(6px)',
+                      boxShadow: theme => theme.palette.mode === 'dark'
+                        ? '0 4px 24px rgba(0,0,0,0.4)'
+                        : '0 4px 20px rgba(0,0,0,0.08)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                  >
+                    <Typography variant="h6" fontWeight={600} mb={3} color="primary">
+                      Task Completion (7 days)
+                    </Typography>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={chartData.lineData}>
+                        <XAxis dataKey="day" />
+                        <YAxis allowDecimals={false} />
+                        <Line
+                          type="monotone"
+                          dataKey="completed"
+                          stroke="#1976d2"
+                          strokeWidth={3}
+                          dot={{ r: 6, fill: '#1976d2', stroke: '#fff', strokeWidth: 2 }}
+                          activeDot={{ r: 8, stroke: '#1976d2', strokeWidth: 2, fill: '#fff' }}
+                        />
+                        <RechartTooltip content={<CustomTooltip />} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Card>
+                )}
+
+                {/* Pie Chart */}
+                {currentChartIndex === 1 && (
+                  <Card
+                    elevation={0}
+                    sx={{
+                      p: 4,
+                      borderRadius: 3,
+                      border: theme => theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255,255,255,0.08)'
+                        : '1px solid rgba(0,0,0,0.06)',
+                      bgcolor: theme => theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.05)'
+                        : '#ffffff',
+                      backdropFilter: 'saturate(140%) blur(6px)',
+                      boxShadow: theme => theme.palette.mode === 'dark'
+                        ? '0 4px 24px rgba(0,0,0,0.4)'
+                        : '0 4px 20px rgba(0,0,0,0.08)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                  >
+                    <Typography variant="h6" fontWeight={600} mb={3} color="primary">
+                      Tasks by Priority
+                    </Typography>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={chartData.pieData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {chartData.pieData.map((entry, idx) => (
+                            <Cell key={entry.name} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <RechartTooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </Card>
+                )}
+
+                {/* Bar Chart */}
+                {currentChartIndex === 2 && (
+                  <Card
+                    elevation={0}
+                    sx={{
+                      p: 4,
+                      borderRadius: 3,
+                      border: theme => theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255,255,255,0.08)'
+                        : '1px solid rgba(0,0,0,0.06)',
+                      bgcolor: theme => theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.05)'
+                        : '#ffffff',
+                      backdropFilter: 'saturate(140%) blur(6px)',
+                      boxShadow: theme => theme.palette.mode === 'dark'
+                        ? '0 4px 24px rgba(0,0,0,0.4)'
+                        : '0 4px 20px rgba(0,0,0,0.08)',
+                    }}
+                  >
+                    <Typography variant="h6" fontWeight={600} mb={3} color="primary">
+                      Tasks by Status
+                    </Typography>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={chartData.barData}>
+                        <XAxis dataKey="category" />
+                        <YAxis allowDecimals={false} />
+                        <Bar
+                          dataKey="tasks"
+                          fill="#9c27b0"
+                          radius={[8, 8, 0, 0]}
+                          barSize={50}
+                        />
+                        <RechartTooltip content={<CustomTooltip />} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Card>
+                )}
+              </Box>
             </Box>
-          </Box>
+          )}
         </Container>
       </Container>
     </Box>

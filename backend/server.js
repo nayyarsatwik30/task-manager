@@ -2,7 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-require('dotenv').config({ path: './config.env' });
+const nodemailer = require('nodemailer');
+
+// Load environment variables from multiple possible locations
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, 'config.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config();
 
 const tasksRoutes = require('./routes/tasks');
 const authRoutes = require('./routes/auth');
@@ -34,6 +40,23 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Task Manager API is running',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      tasks: '/api/tasks',
+      emailAuth: '/api/email-auth',
+      preferences: '/api/preferences'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -41,6 +64,67 @@ app.get('/health', (req, res) => {
     message: 'Task Manager API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Email service test route
+app.get('/api/test-email', async (req, res) => {
+  try {
+    const { sendEmail } = require('./utils/emailService');
+
+    console.log('🔧 EMAIL TEST - Starting test...');
+
+    const result = await sendEmail({
+      to: process.env.EMAIL_USER,
+      subject: 'Task Manager Email Test',
+      text: 'This is a test email from Task Manager backend.',
+      html: `
+        <h2>Task Manager Email Test</h2>
+        <p>This is a test email from your Task Manager backend.</p>
+        <p>If you receive this, your Gmail SMTP configuration is working correctly!</p>
+        <p>Timestamp: ${new Date().toISOString()}</p>
+      `
+    });
+
+    if (result.success) {
+      console.log('✅ EMAIL TEST SUCCESS - Email sent');
+      res.json({
+        success: true,
+        message: 'Test email sent successfully',
+        messageId: result.messageId,
+        sentTo: process.env.EMAIL_USER
+      });
+    } else {
+      console.log('❌ EMAIL TEST FAILED:', result.error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send test email',
+        error: result.error,
+        details: result.details
+      });
+    }
+  } catch (error) {
+    console.error('❌ EMAIL TEST ERROR:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Email test failed',
+      error: error.message
+    });
+  }
+});
+
+// API health route
+app.get('/api', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Task Manager API endpoints available',
+    endpoints: {
+      auth: '/api/auth',
+      tasks: '/api/tasks',
+      emailAuth: '/api/email-auth',
+      preferences: '/api/preferences'
+    },
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -61,7 +145,7 @@ app.use('*', (req, res) => {
 // Global error handler
 app.use((error, req, res, next) => {
   console.error('Global error handler:', error);
-  
+
   res.status(error.status || 500).json({
     success: false,
     message: error.message || 'Internal server error',
@@ -76,7 +160,17 @@ const startServer = async () => {
     console.log('🔄 Initializing database models...');
     // Initialize database tables with Sequelize
     await syncModels();
-    
+
+    console.log('🔄 Validating email configuration...');
+    // Validate email configuration
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.warn('⚠️  Email configuration missing - email services will not work');
+      console.warn('   Set EMAIL_USER and EMAIL_PASS in backend/config.env');
+      console.warn('   Visit http://localhost:5000/test-email to test email configuration');
+    } else {
+      console.log('✅ Email configuration found');
+    }
+
     console.log('🔄 Starting HTTP server...');
     // Start server
     const server = app.listen(PORT, () => {
@@ -84,7 +178,8 @@ const startServer = async () => {
       console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`   API Base URL: http://localhost:${PORT}/api`);
       console.log(`   Health Check: http://localhost:${PORT}/health`);
-      
+      console.log(`   Email Test: http://localhost:${PORT}/test-email`);
+
       console.log('🔄 Starting reminder service...');
       // Start the reminder service
       try {

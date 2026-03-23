@@ -54,17 +54,26 @@ const Signup = ({ setIsAuthenticated }) => {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
+    const payload = {
+      name: formData.fullName,
+      email: formData.email,
+      password: formData.password
+    };
+
+    console.log('🔍 FRONTEND SIGNUP DEBUG - Sending payload:', payload);
+
     try {
       const res = await fetch('http://localhost:5000/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.fullName,
-          email: formData.email,
-          password: formData.password
-        })
+        body: JSON.stringify(payload)
       });
+
+      console.log('🔍 FRONTEND SIGNUP DEBUG - Response status:', res.status);
+
       const data = await res.json();
+      console.log('🔍 FRONTEND SIGNUP DEBUG - Response data:', data);
+
       if (data.success) {
         // Store user email in localStorage for verification page
         if (formData.email) {
@@ -76,6 +85,7 @@ const Signup = ({ setIsAuthenticated }) => {
         setErrors({ api: data.message || 'Signup failed' });
       }
     } catch (err) {
+      console.error('🔍 FRONTEND SIGNUP DEBUG - Fetch error:', err);
       setErrors({ api: 'Network error. Please try again.' });
     }
   };
@@ -99,11 +109,11 @@ const Signup = ({ setIsAuthenticated }) => {
         }}
       >
         <Grid container sx={{ maxWidth: 600, width: '100%' }}>
-          <Grid item xs={12} component={Paper} elevation={6} square sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <Grid item xs={12} component={Paper} elevation={6} square sx={{
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
-            background: mode === 'light' 
+            background: mode === 'light'
               ? 'rgba(255,255,255,0.95)'
               : theme.palette.background.paper,
             backdropFilter: 'blur(10px)',
@@ -111,12 +121,12 @@ const Signup = ({ setIsAuthenticated }) => {
             color: theme.palette.text.primary
           }}>
             <Box sx={{ width: '100%', p: { xs: 3, sm: 4 } }}>
-              <Typography 
-                variant="h4" 
-                fontWeight={700} 
-                gutterBottom 
-                align="center" 
-                color="primary" 
+              <Typography
+                variant="h4"
+                fontWeight={700}
+                gutterBottom
+                align="center"
+                color="primary"
                 mb={1}
                 sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
               >
@@ -125,7 +135,7 @@ const Signup = ({ setIsAuthenticated }) => {
               <Typography variant="body2" color="text.secondary" align="center" mb={4}>
                 Join Task Manager and start managing your tasks efficiently
               </Typography>
-              
+
               <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
                 <TextField
                   required
@@ -136,7 +146,8 @@ const Signup = ({ setIsAuthenticated }) => {
                   autoComplete="name"
                   value={formData.fullName}
                   onChange={handleChange('fullName')}
-                  sx={{ mb: 2, 
+                  sx={{
+                    mb: 2,
                     '& .MuiInputBase-root': {
                       background: mode === 'dark' ? theme.palette.background.default : 'white',
                       color: theme.palette.text.primary
@@ -160,7 +171,8 @@ const Signup = ({ setIsAuthenticated }) => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange('email')}
-                  sx={{ mb: 2, 
+                  sx={{
+                    mb: 2,
                     '& .MuiInputBase-root': {
                       background: mode === 'dark' ? theme.palette.background.default : 'white',
                       color: theme.palette.text.primary
@@ -174,7 +186,7 @@ const Signup = ({ setIsAuthenticated }) => {
                   InputLabelProps={{ style: { color: mode === 'dark' ? theme.palette.text.secondary : undefined } }}
                   InputProps={{ style: { color: theme.palette.text.primary } }}
                 />
-                
+
                 <TextField
                   margin="normal"
                   required
@@ -186,7 +198,8 @@ const Signup = ({ setIsAuthenticated }) => {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange('password')}
-                  sx={{ mb: 2, 
+                  sx={{
+                    mb: 2,
                     '& .MuiInputBase-root': {
                       background: mode === 'dark' ? theme.palette.background.default : 'white',
                       color: theme.palette.text.primary
@@ -209,7 +222,7 @@ const Signup = ({ setIsAuthenticated }) => {
                     style: { color: theme.palette.text.primary },
                   }}
                 />
-                
+
                 <TextField
                   margin="normal"
                   required
@@ -221,7 +234,8 @@ const Signup = ({ setIsAuthenticated }) => {
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange('confirmPassword')}
-                  sx={{ mb: 2, 
+                  sx={{
+                    mb: 2,
                     '& .MuiInputBase-root': {
                       background: mode === 'dark' ? theme.palette.background.default : 'white',
                       color: theme.palette.text.primary
@@ -244,13 +258,13 @@ const Signup = ({ setIsAuthenticated }) => {
                     style: { color: theme.palette.text.primary },
                   }}
                 />
-                
+
                 <FormControlLabel
                   control={
-                    <Checkbox 
-                      checked={formData.terms} 
-                      onChange={handleChange('terms')} 
-                      color="primary" 
+                    <Checkbox
+                      checked={formData.terms}
+                      onChange={handleChange('terms')}
+                      color="primary"
                     />
                   }
                   label={
@@ -273,17 +287,17 @@ const Signup = ({ setIsAuthenticated }) => {
                 {errors.api && (
                   <Typography variant="caption" color="error" sx={{ ml: 1, mb: 2, display: 'block' }}>{errors.api}</Typography>
                 )}
-                
+
                 <Button
                   type="submit"
                   fullWidth
                   variant="contained"
                   size="large"
-                  sx={{ 
-                    py: 1.5, 
-                    fontWeight: 600, 
-                    fontSize: '1rem', 
-                    borderRadius: 2, 
+                  sx={{
+                    py: 1.5,
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    borderRadius: 2,
                     boxShadow: '0 4px 16px rgba(25,118,210,0.3)',
                     background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
                     '&:hover': {
@@ -310,14 +324,14 @@ const Signup = ({ setIsAuthenticated }) => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ token: credentialResponse.credential }),
                       })
-                      .then(res => res.json())
-                      .then(data => {
-                        if (data.success) {
-                          localStorage.setItem('userEmail', data.user.email);
-                          setIsAuthenticated && setIsAuthenticated(true);
-                          navigate('/');
-                        }
-                      });
+                        .then(res => res.json())
+                        .then(data => {
+                          if (data.success) {
+                            localStorage.setItem('userEmail', data.user.email);
+                            setIsAuthenticated && setIsAuthenticated(true);
+                            navigate('/');
+                          }
+                        });
                     }}
                     onError={() => {
                       console.log('Google Signup Failed');
