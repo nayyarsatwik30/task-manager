@@ -32,7 +32,7 @@ const AppContent = () => {
         if (token) {
           // Verify the token with the backend
           try {
-            const response = await fetch('http://localhost:5000/api/auth/verify-token', {
+            const response = await fetch('https://task-manager-back-emez.onrender.com/api/auth/verify-token', {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${token}`,

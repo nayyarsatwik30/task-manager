@@ -30,7 +30,7 @@ const ForgotPassword = () => {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+      const response = await fetch('https://task-manager-back-emez.onrender.com/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ const ForgotPassword = () => {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              background: theme.palette.mode === 'dark' 
+              background: theme.palette.mode === 'dark'
                 ? 'linear-gradient(135deg, rgba(25,118,210,0.1) 0%, rgba(66,165,245,0.05) 100%)'
                 : 'linear-gradient(135deg, rgba(25,118,210,0.02) 0%, rgba(66,165,245,0.01) 100%)',
               border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(25,118,210,0.1)',
@@ -121,14 +121,14 @@ const ForgotPassword = () => {
                 lineHeight: 1.6,
               }}
             >
-              We've sent a password reset link to <strong>{email}</strong>. 
+              We've sent a password reset link to <strong>{email}</strong>.
               Please check your email and click the link to reset your password.
             </Typography>
 
-            <Alert 
-              severity="success" 
-              sx={{ 
-                mb: 3, 
+            <Alert
+              severity="success"
+              sx={{
+                mb: 3,
                 width: '100%',
                 '& .MuiAlert-message': {
                   width: '100%',
@@ -167,7 +167,7 @@ const ForgotPassword = () => {
               >
                 Back to Login
               </Button>
-              
+
               <Button
                 variant="contained"
                 onClick={() => {
@@ -214,7 +214,7 @@ const ForgotPassword = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            background: theme.palette.mode === 'dark' 
+            background: theme.palette.mode === 'dark'
               ? 'linear-gradient(135deg, rgba(25,118,210,0.1) 0%, rgba(66,165,245,0.05) 100%)'
               : 'linear-gradient(135deg, rgba(25,118,210,0.02) 0%, rgba(66,165,245,0.01) 100%)',
             border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(25,118,210,0.1)',
@@ -312,27 +312,27 @@ const ForgotPassword = () => {
               )}
             </Button>
 
-            </Box>
+          </Box>
 
-            <Box sx={{ textAlign: 'center' }}>
-              <Link
-                component={RouterLink}
-                to="/login"
-                sx={{
-                  color: theme.palette.mode === 'dark' ? '#42a5f5' : '#1976d2',
-                  textDecoration: 'none',
-                  fontWeight: 500,
-                  '&:hover': {
-                    textDecoration: 'underline',
-                  },
-                }}
-              >
-                ← Back to Login
-              </Link>
-            </Box>
-          </Paper>
-        </Box>
-      </Container>
+          <Box sx={{ textAlign: 'center' }}>
+            <Link
+              component={RouterLink}
+              to="/login"
+              sx={{
+                color: theme.palette.mode === 'dark' ? '#42a5f5' : '#1976d2',
+                textDecoration: 'none',
+                fontWeight: 500,
+                '&:hover': {
+                  textDecoration: 'underline',
+                },
+              }}
+            >
+              ← Back to Login
+            </Link>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 

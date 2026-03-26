@@ -32,7 +32,7 @@ const Login = ({ setIsAuthenticated }) => {
     console.log('🔍 FRONTEND LOGIN DEBUG - Sending payload:', { email, password });
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch('https://task-manager-back-emez.onrender.com/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -207,7 +207,7 @@ const Login = ({ setIsAuthenticated }) => {
                 <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
                   <GoogleLogin
                     onSuccess={credentialResponse => {
-                      fetch('http://localhost:5000/api/auth/google', {
+                      fetch('https://task-manager-back-emez.onrender.com/api/auth/google', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ token: credentialResponse.credential }),

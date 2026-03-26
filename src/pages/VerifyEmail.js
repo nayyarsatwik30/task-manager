@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Paper, 
-  Typography, 
-  Button, 
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
   CircularProgress,
   Alert,
   Container
 } from '@mui/material';
-import { 
-  Email as EmailIcon, 
+import {
+  Email as EmailIcon,
   CheckCircle as CheckCircleIcon,
-  Refresh as RefreshIcon 
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from '@mui/material';
@@ -22,7 +22,7 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
   const theme = useTheme();
-  
+
   const userEmail = searchParams.get('email') || localStorage.getItem('userEmail');
   const token = searchParams.get('token');
   const verified = searchParams.get('verified');
@@ -41,12 +41,12 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
       }
       return;
     }
-    
+
     // If verification is already confirmed from backend
     if (verified === 'true' && userEmail) {
       setStatus('success');
       setMessage('Email verified successfully! Redirecting to login page...');
-      
+
       // Redirect to login page after a short delay
       setTimeout(() => {
         navigate('/login');
@@ -62,13 +62,13 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
     setStatus('verifying');
     try {
       const response = await fetch(
-        `http://localhost:5000/api/auth/verify-email?token=${token}&email=${encodeURIComponent(userEmail)}`
+        `https://task-manager-back-emez.onrender.com/api/auth/verify-email?token=${token}&email=${encodeURIComponent(userEmail)}`
       );
-      
+
       if (response.ok) {
         setStatus('success');
         setMessage('Email verified successfully! Redirecting to login page...');
-        
+
         // Redirect to login page after a short delay
         setTimeout(() => {
           navigate('/login');
@@ -85,12 +85,12 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
 
   const handleResendEmail = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/resend-verification', {
+      const response = await fetch('https://task-manager-back-emez.onrender.com/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: userEmail })
       });
-      
+
       const data = await response.json();
       if (data.success) {
         setMessage('Verification email sent! Please check your inbox.');
@@ -120,12 +120,12 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
       case 'success':
         return (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <CheckCircleIcon 
-              sx={{ 
-                fontSize: 80, 
-                color: 'success.main', 
-                mb: 3 
-              }} 
+            <CheckCircleIcon
+              sx={{
+                fontSize: 80,
+                color: 'success.main',
+                mb: 3
+              }}
             />
             <Typography variant="h4" gutterBottom color="success.main">
               Email Verified!
@@ -146,15 +146,15 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
             <Alert severity="error" sx={{ mb: 3 }}>
               {message}
             </Alert>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={() => navigate('/login')}
               sx={{ mr: 2 }}
             >
               Go to Login
             </Button>
-            <Button 
-              variant="outlined" 
+            <Button
+              variant="outlined"
               onClick={handleResendEmail}
               startIcon={<RefreshIcon />}
             >
@@ -166,12 +166,12 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
       default: // pending
         return (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <EmailIcon 
-              sx={{ 
-                fontSize: 80, 
-                color: 'primary.main', 
-                mb: 3 
-              }} 
+            <EmailIcon
+              sx={{
+                fontSize: 80,
+                color: 'primary.main',
+                mb: 3
+              }}
             />
             <Typography variant="h4" gutterBottom>
               Check Your Email
@@ -179,12 +179,12 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               We've sent a verification link to:
             </Typography>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                mb: 4, 
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 4,
                 color: 'primary.main',
-                fontWeight: 600 
+                fontWeight: 600
               }}
             >
               {userEmail}
@@ -193,18 +193,18 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
               Click the link in your email to verify your account and access your dashboard.
               If you don't see the email, check your spam folder.
             </Typography>
-            
+
             <Box sx={{ mb: 3 }}>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 onClick={handleResendEmail}
                 startIcon={<RefreshIcon />}
                 sx={{ mr: 2 }}
               >
                 Resend Email
               </Button>
-              <Button 
-                variant="text" 
+              <Button
+                variant="text"
                 onClick={() => navigate('/login')}
               >
                 Back to Login
@@ -225,9 +225,9 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
   };
 
   return (
-    <Box sx={{ 
+    <Box sx={{
       minHeight: '100vh',
-      background: theme.palette.mode === 'light' 
+      background: theme.palette.mode === 'light'
         ? 'linear-gradient(135deg, #1976d2 0%, #1565c0 50%, #0d47a1 100%)'
         : 'linear-gradient(135deg, #181a20 0%, #23272f 100%)',
       display: 'flex',
@@ -236,9 +236,9 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
       p: 2
     }}>
       <Container maxWidth="sm">
-        <Paper 
-          elevation={6} 
-          sx={{ 
+        <Paper
+          elevation={6}
+          sx={{
             borderRadius: 3,
             overflow: 'hidden',
             backgroundColor: theme.palette.background.paper
@@ -253,7 +253,7 @@ const VerifyEmail = ({ setIsAuthenticated }) => {
                 Email Verification
               </Typography>
             </Box>
-            
+
             {renderContent()}
           </Box>
         </Paper>

@@ -88,7 +88,7 @@ const Settings = ({ handleLogout }) => {
         const userEmail = localStorage.getItem('userEmail');
         if (!userEmail) return;
 
-        const response = await fetch(`http://localhost:5000/api/preferences/${encodeURIComponent(userEmail)}`);
+        const response = await fetch(`https://task-manager-back-emez.onrender.com/api/preferences/${encodeURIComponent(userEmail)}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.preferences) {
@@ -110,7 +110,7 @@ const Settings = ({ handleLogout }) => {
   // Helper: convert tasks to CSV
   const toCsv = (rows) => {
     if (!Array.isArray(rows) || rows.length === 0) return 'id,title,description,status,priority,dueDate,createdAt,updatedAt\n';
-    const header = ['id','title','description','status','priority','dueDate','createdAt','updatedAt'];
+    const header = ['id', 'title', 'description', 'status', 'priority', 'dueDate', 'createdAt', 'updatedAt'];
     const escape = (val) => {
       if (val === undefined || val === null) return '';
       const s = String(val).replace(/"/g, '""');
@@ -125,7 +125,7 @@ const Settings = ({ handleLogout }) => {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
     a.href = url;
     a.download = `tasks_export_${ts}.csv`;
     document.body.appendChild(a);
@@ -180,7 +180,7 @@ const Settings = ({ handleLogout }) => {
               setEmailNotifications(e.target.checked);
               try {
                 const userEmail = localStorage.getItem('userEmail');
-                await fetch(`http://localhost:5000/api/preferences/${encodeURIComponent(userEmail)}`, {
+                await fetch(`https://task-manager-back-emez.onrender.com/api/preferences/${encodeURIComponent(userEmail)}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ emailNotifications: e.target.checked })
@@ -196,7 +196,7 @@ const Settings = ({ handleLogout }) => {
               setReminderNotifications(e.target.checked);
               try {
                 const userEmail = localStorage.getItem('userEmail');
-                await fetch(`http://localhost:5000/api/preferences/${encodeURIComponent(userEmail)}`, {
+                await fetch(`https://task-manager-back-emez.onrender.com/api/preferences/${encodeURIComponent(userEmail)}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ reminderNotifications: e.target.checked })
@@ -209,13 +209,13 @@ const Settings = ({ handleLogout }) => {
           />
           <FormControl fullWidth sx={{ mt: 2, maxWidth: 300 }}>
             <InputLabel>{i18n[language].reminderTime}</InputLabel>
-            <Select 
-              value={reminderTime} 
+            <Select
+              value={reminderTime}
               onChange={async (e) => {
                 setReminderTime(e.target.value);
                 try {
                   const userEmail = localStorage.getItem('userEmail');
-                  await fetch(`http://localhost:5000/api/preferences/${encodeURIComponent(userEmail)}`, {
+                  await fetch(`https://task-manager-back-emez.onrender.com/api/preferences/${encodeURIComponent(userEmail)}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ reminderTime: parseInt(e.target.value) })
@@ -223,7 +223,7 @@ const Settings = ({ handleLogout }) => {
                 } catch (error) {
                   console.error('Error updating preferences:', error);
                 }
-              }} 
+              }}
               label="Reminder Time"
               disabled={!reminderNotifications}
             >

@@ -96,7 +96,7 @@ CREATE TABLE tasks (
 ### Create Task
 
 ```bash
-curl -X POST http://localhost:5000/api/tasks \
+curl -X POST https://task-manager-back-emez.onrender.com/api/tasks \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Complete project",
@@ -110,13 +110,13 @@ curl -X POST http://localhost:5000/api/tasks \
 ### Get All Tasks
 
 ```bash
-curl http://localhost:5000/api/tasks
+curl https://task-manager-back-emez.onrender.com/api/tasks
 ```
 
 ### Update Task
 
 ```bash
-curl -X PUT http://localhost:5000/api/tasks/1 \
+curl -X PUT https://task-manager-back-emez.onrender.com/api/tasks/1 \
   -H "Content-Type: application/json" \
   -d '{
     "status": "completed"
@@ -126,7 +126,7 @@ curl -X PUT http://localhost:5000/api/tasks/1 \
 ### Delete Task
 
 ```bash
-curl -X DELETE http://localhost:5000/api/tasks/1
+curl -X DELETE https://task-manager-back-emez.onrender.com/api/tasks/1
 ```
 
 ## 🚨 Error Handling

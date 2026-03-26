@@ -63,7 +63,7 @@ const Signup = ({ setIsAuthenticated }) => {
     console.log('🔍 FRONTEND SIGNUP DEBUG - Sending payload:', payload);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/signup', {
+      const res = await fetch('https://task-manager-back-emez.onrender.com/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -319,7 +319,7 @@ const Signup = ({ setIsAuthenticated }) => {
                 <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
                   <GoogleLogin
                     onSuccess={credentialResponse => {
-                      fetch('http://localhost:5000/api/auth/google', {
+                      fetch('https://task-manager-back-emez.onrender.com/api/auth/google', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ token: credentialResponse.credential }),

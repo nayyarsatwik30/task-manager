@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Snackbar, Alert, Box, Typography, Button } from '@mui/material';
-import { 
+import {
   Notifications as NotificationsIcon,
   Schedule as ScheduleIcon,
-  PriorityHigh as PriorityHighIcon 
+  PriorityHigh as PriorityHighIcon
 } from '@mui/icons-material';
 
 const NotificationContext = createContext();
@@ -28,19 +28,19 @@ export const NotificationProvider = ({ children }) => {
         const userEmail = localStorage.getItem('userEmail');
         if (!userEmail) return;
 
-        const response = await fetch(`http://localhost:5000/api/tasks?userEmail=${encodeURIComponent(userEmail)}`);
+        const response = await fetch(`https://task-manager-back-emez.onrender.com/api/tasks?userEmail=${encodeURIComponent(userEmail)}`);
         if (response.ok) {
           const tasks = await response.json();
           const now = new Date();
-          
+
           // Find tasks due within the next 30 minutes
           const dueTasks = tasks.filter(task => {
             if (task.status === 'completed') return false;
-            
+
             const dueDate = new Date(task.dueDate);
             const timeUntilDue = dueDate - now;
             const minutesUntilDue = Math.floor(timeUntilDue / (1000 * 60));
-            
+
             return minutesUntilDue <= 30 && minutesUntilDue > 0;
           });
 
@@ -49,7 +49,7 @@ export const NotificationProvider = ({ children }) => {
             const dueDate = new Date(task.dueDate);
             const timeUntilDue = dueDate - now;
             const minutesUntilDue = Math.floor(timeUntilDue / (1000 * 60));
-            
+
             const notification = {
               id: `task-${task.id}-${Date.now()}`,
               type: 'task-reminder',
@@ -132,7 +132,7 @@ export const NotificationProvider = ({ children }) => {
   return (
     <NotificationContext.Provider value={value}>
       {children}
-      
+
       {/* Task Reminder Notification */}
       {currentNotification && (
         <Snackbar
@@ -148,8 +148,8 @@ export const NotificationProvider = ({ children }) => {
             sx={{
               width: '100%',
               minWidth: 350,
-              backgroundColor: currentNotification.severity === 'error' ? '#fdeded' : 
-                            currentNotification.severity === 'warning' ? '#fff4e5' : '#e8f5e8',
+              backgroundColor: currentNotification.severity === 'error' ? '#fdeded' :
+                currentNotification.severity === 'warning' ? '#fff4e5' : '#e8f5e8',
               border: `1px solid ${getPriorityColor(currentNotification.priority)}`,
               '& .MuiAlert-icon': {
                 color: getPriorityColor(currentNotification.priority)
@@ -160,7 +160,7 @@ export const NotificationProvider = ({ children }) => {
                 <Button
                   size="small"
                   onClick={() => dismissNotification(currentNotification.id)}
-                  sx={{ 
+                  sx={{
                     color: getPriorityColor(currentNotification.priority),
                     fontSize: '0.75rem'
                   }}

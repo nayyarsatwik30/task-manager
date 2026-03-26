@@ -1,5 +1,5 @@
 // Create base URL from environment or default
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://task-manager-back-emez.onrender.com/api';
 
 // Helper function for fetch requests
 async function fetchWithHandling(url, options = {}) {

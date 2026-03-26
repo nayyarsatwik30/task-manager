@@ -18,7 +18,7 @@ async function sendVerificationEmail(user, verificationToken) {
       pass: process.env.EMAIL_PASS, // set in config.env (use app password)
     },
   });
-  const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
+  const verificationUrl = `https://task-manager-back-emez.onrender.com/api/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
 
   const emailTemplate = `
     <!DOCTYPE html>

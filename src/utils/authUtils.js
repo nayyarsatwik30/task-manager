@@ -11,12 +11,12 @@ export const verifyEmailToken = async () => {
   // Get token from URL query parameters
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token');
-  
+
   if (!token) return null;
 
   try {
     // Call the backend to verify the token
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/email-auth/verify-token?token=${token}`, {
+    const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://task-manager-back-emez.onrender.com/api'}/email-auth/verify-token?token=${token}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -29,26 +29,26 @@ export const verifyEmailToken = async () => {
     }
 
     const data = await response.json();
-    
+
     if (data.success && data.token) {
       // Store the session token
       localStorage.setItem('token', data.token);
-      
+
       // Store user data if needed
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('userEmail', data.user.email);
       }
-      
+
       // Clean up the URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      
+
       return {
         token: data.token,
         user: data.user
       };
     }
-    
+
     return null;
   } catch (error) {
     console.error('Error verifying email token:', error);

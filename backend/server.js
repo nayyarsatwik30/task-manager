@@ -166,7 +166,7 @@ const startServer = async () => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.warn('⚠️  Email configuration missing - email services will not work');
       console.warn('   Set EMAIL_USER and EMAIL_PASS in backend/config.env');
-      console.warn('   Visit http://localhost:5000/test-email to test email configuration');
+      console.warn('   Visit https://task-manager-back-emez.onrender.com/test-email to test email configuration');
     } else {
       console.log('✅ Email configuration found');
     }
