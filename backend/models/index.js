@@ -3,18 +3,38 @@ const User = require('./User');
 const Task = require('./Task');
 const UserPreference = require('./UserPreference');
 
-// Define associations
+// ====================
+// 🔗 DEFINE RELATIONS
+// ====================
 Task.belongsTo(User, { foreignKey: 'user_id' });
 User.hasMany(Task, { foreignKey: 'user_id' });
 
 UserPreference.belongsTo(User, { foreignKey: 'user_id' });
 User.hasOne(UserPreference, { foreignKey: 'user_id' });
 
+// ====================
+// 🚀 SYNC FUNCTION
+// ====================
 const syncModels = async () => {
-  // Avoid auto-alter in normal runs to prevent duplicate index creation.
-  // Use migrations for schema changes, or set ALTER_SYNC=true in env if you want a one-off alter.
-  const doAlter = process.env.ALTER_SYNC === 'true';
-  await sequelize.sync(doAlter ? { alter: true } : undefined);
+  try {
+    // ✅ STEP 1: CONNECT DB
+    await sequelize.authenticate();
+    console.log('✅ Database connected successfully');
+
+    // ✅ STEP 2: SYNC TABLES
+    const doAlter = process.env.ALTER_SYNC === 'true';
+
+    await sequelize.sync({
+      alter: doAlter,   // only if explicitly enabled
+      force: false      // NEVER true in production
+    });
+
+    console.log('✅ All models synced successfully');
+
+  } catch (error) {
+    console.error('❌ Database sync failed:', error);
+    throw error;
+  }
 };
 
 module.exports = {
@@ -23,4 +43,4 @@ module.exports = {
   Task,
   UserPreference,
   syncModels,
-}; 
+};
